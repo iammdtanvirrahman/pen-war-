@@ -1,0 +1,8 @@
+{
+  "name": "Pen Fighter",
+  "description": "A high-stakes 3D tabletop duel game where players flick pens across a bench with realistic physics to knock opponent pens off.",
+  "permissions": [],
+  "capabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
