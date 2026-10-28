@@ -854,13 +854,24 @@ export class PenGameEngine {
       const facingYaw = Math.atan2(-rz, -rx) + (YAWS[player % 4] || 0.1);
       body.quaternion.setFromAxisAngle(new CANNON.Vec3(0, 1, 0), facingYaw);
     } else {
+      // Place each team at opposite ends of the long axis, not across the short
+      // axis. This creates a much longer opening distance and prevents an
+      // immediate close-range knockout from the starting layout.
       const side = player === 0 ? 1 : -1;
-      const l = (idx - (count - 1) / 2) * spacing;
+      const acrossWidthSpacing = Math.min(
+        0.72,
+        (this.deck.halfS * 2 - 0.9) / Math.max(1, count - 1)
+      );
+      const acrossWidth = (idx - (count - 1) / 2) * acrossWidthSpacing;
+      const endOffset = Math.max(0, this.deck.halfL - L * 0.5 - 0.48);
       const pos = new THREE.Vector3(this.deck.cx, 0, this.deck.cz)
-        .addScaledVector(this.deck.L, l)
-        .addScaledVector(this.deck.S, side * this.deck.halfS * 0.5);
+        .addScaledVector(this.deck.L, side * endOffset)
+        .addScaledVector(this.deck.S, acrossWidth);
       body.position.set(pos.x, this.deck.y + r + 0.002, pos.z);
-      body.quaternion.setFromAxisAngle(new CANNON.Vec3(0, 1, 0), this.deck.baseYaw + YAWS[idx % 4] * side);
+      body.quaternion.setFromAxisAngle(
+        new CANNON.Vec3(0, 1, 0),
+        this.deck.baseYaw + YAWS[idx % 4] * side
+      );
     }
     body.updateInertiaWorld(true);
 
