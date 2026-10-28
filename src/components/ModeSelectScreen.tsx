@@ -189,7 +189,7 @@ export const ModeSelectScreen: React.FC<ModeSelectScreenProps> = ({
         }}
       >
         <span>Pull Back to Aim · Release to Flick</span>
-        <span className="text-[#ff0044] font-bold">READY</span>
+        <span className="text-[#ff0044] font-bold">CREATED BY TANVIR RAHMAN</span>
       </footer>
     </div>
   );
