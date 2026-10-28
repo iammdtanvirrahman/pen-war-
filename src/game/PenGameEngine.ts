@@ -1349,7 +1349,7 @@ export class PenGameEngine {
       this.aiTimer = 1.2;
     } else if (!this.hinted) {
       this.hinted = true;
-      this.callbacks.onToast?.('Touch your pen, pull back like a slingshot, then release.', 4000);
+      this.callbacks.onToast?.('Touch pen · pull back · release', 1800);
     }
     this.notifyGameState();
   }
