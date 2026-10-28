@@ -12,6 +12,7 @@ interface ResultModalProps {
   players?: PlayerConfig[];
   onPlayAgain: () => void;
   onChangeSettings: () => void;
+  onMainMenu: () => void;
 }
 
 export const ResultModal: React.FC<ResultModalProps> = ({
@@ -24,6 +25,7 @@ export const ResultModal: React.FC<ResultModalProps> = ({
   players,
   onPlayAgain,
   onChangeSettings,
+  onMainMenu,
 }) => {
   // Listen for Enter or Space to play again
   useEffect(() => {
@@ -146,6 +148,17 @@ export const ResultModal: React.FC<ResultModalProps> = ({
           className="w-full py-2.5 px-4 border border-white/15 bg-white/5 hover:bg-white/10 text-white font-['Space_Mono',monospace] text-xs uppercase tracking-wider active:scale-[0.98] transition cursor-pointer"
         >
           Change Mode & Armory
+        </button>
+
+        <button
+          type="button"
+          onClick={() => {
+            sound.haptic(15);
+            onMainMenu();
+          }}
+          className="w-full py-2.5 px-4 border border-[#ff0044]/50 bg-transparent hover:bg-[#ff0044]/10 text-[#ff5577] font-['Space_Mono',monospace] text-xs uppercase tracking-wider active:scale-[0.98] transition cursor-pointer"
+        >
+          Main Menu
         </button>
       </div>
     </div>
