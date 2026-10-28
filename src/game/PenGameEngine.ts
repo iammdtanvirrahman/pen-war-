@@ -1269,36 +1269,93 @@ export class PenGameEngine {
   private planAi(): AiShotPlan {
     const me = this.pieces.filter((p) => p.alive && p.player === this.turn);
     const foes = this.pieces.filter((p) => p.alive && p.player !== this.turn);
-    const cands: { m: Piece; f: Piece; dir: THREE.Vector3; v: number }[] = [];
+    const lv = AI_LEVELS[this.cfg.level] || AI_LEVELS.medium;
+    const candidates: Array<{ pc: Piece; target: Piece; dir: THREE.Vector3; speed: number; score: number; hitOffset: number }> = [];
+
+    // Evaluate several attack lanes instead of blindly shooting at the nearest pen.
+    // Hard AI scores target-to-edge pressure, collision alignment, and self-risk.
+    const angleSamples = this.cfg.level === 'hard'
+      ? [-0.28, -0.18, -0.09, 0, 0.09, 0.18, 0.28]
+      : this.cfg.level === 'medium' ? [-0.12, 0, 0.12] : [-0.18, 0, 0.18];
 
     for (const m of me) {
       for (const f of foes) {
         const dx = f.body.position.x - m.body.position.x;
         const dz = f.body.position.z - m.body.position.z;
         const dist = Math.hypot(dx, dz) || 0.001;
-        const dir = new THREE.Vector3(dx / dist, 0, dz / dist);
-        const e = this.edgeDistance(f.body.position, dir);
-        const gap = Math.max(0.05, dist - 0.45);
-        const vHit = Math.sqrt(2 * TABLE_DECEL * (e + 0.3)) / 0.68;
-        cands.push({ m, f, dir, v: Math.sqrt(vHit * vHit + 2 * TABLE_DECEL * gap) });
+        const baseDir = new THREE.Vector3(dx / dist, 0, dz / dist);
+        for (const angle of angleSamples) {
+          const dir = baseDir.clone().applyAxisAngle(UP, angle).normalize();
+          const tx = f.body.position.x - m.body.position.x;
+          const tz = f.body.position.z - m.body.position.z;
+          const along = tx * dir.x + tz * dir.z;
+          if (along <= 0) continue;
+          const miss = Math.abs(tx * dir.z - tz * dir.x);
+          const hitTolerance = m.radius + f.radius + (this.cfg.level === 'hard' ? 0.12 : 0.2);
+          if (miss > hitTolerance) continue;
+
+          const targetEdge = this.edgeDistance(f.body.position, dir);
+          const gap = Math.max(0.05, along - (m.radius + f.radius) * 1.4);
+          const targetSpeed = Math.sqrt(Math.max(0.1, 2 * TABLE_DECEL * (targetEdge + 0.22))) / 0.68;
+          const speed = clamp(Math.sqrt(targetSpeed * targetSpeed + 2 * TABLE_DECEL * gap), V_MIN, V_MAX);
+
+          // Lower score is better: prioritize near-edge knockouts and clean, efficient hits.
+          const ownEdge = this.edgeDistance(m.body.position, dir);
+          const edgeThreat = Math.max(0, 1.5 - targetEdge);
+          const collisionPenalty = miss / Math.max(0.01, hitTolerance);
+          const selfRisk = ownEdge < 1.0 ? (1.0 - ownEdge) * 1.8 : 0;
+          const powerPenalty = speed / V_MAX * 0.16;
+          const score = targetEdge * 1.1 + collisionPenalty * 2.8 + selfRisk + powerPenalty - edgeThreat * 0.35;
+          const axis = new THREE.Vector3();
+          this.penAxis(m, axis);
+          axis.y = 0;
+          if (axis.lengthSq() > 1e-6) axis.normalize();
+          // Pick either end or a side-biased contact point to add controlled spin.
+          const alignment = axis.dot(dir);
+          const hitOffset = Math.abs(alignment) > 0.35
+            ? Math.sign(alignment) * m.length * (this.cfg.level === 'hard' ? 0.34 : 0.18)
+            : (angle >= 0 ? 1 : -1) * m.length * (this.cfg.level === 'hard' ? 0.22 : 0.1);
+          candidates.push({ pc: m, target: f, dir, speed, score, hitOffset });
+        }
       }
     }
 
-    cands.sort((a, b) => a.v - b.v);
-    const lv = AI_LEVELS[this.cfg.level] || AI_LEVELS.medium;
-    const pool = cands.slice(0, lv.pool);
-    const c = pool[Math.floor(Math.random() * pool.length)] || cands[0];
-    const dir = c.dir.clone().applyAxisAngle(UP, (Math.random() * 2 - 1) * lv.angle);
-    const speed = clamp(c.v * (1 + (Math.random() * 2 - 1) * lv.power), V_MIN, V_MAX);
+    if (!candidates.length) {
+      // Fallback: aim at the closest opponent if all lanes are obstructed.
+      let best: { pc: Piece; target: Piece; dir: THREE.Vector3; dist: number } | null = null;
+      for (const m of me) for (const f of foes) {
+        const dx = f.body.position.x - m.body.position.x;
+        const dz = f.body.position.z - m.body.position.z;
+        const dist = Math.hypot(dx, dz);
+        if (!best || dist < best.dist) {
+          best = { pc: m, target: f, dir: new THREE.Vector3(dx / (dist || 1), 0, dz / (dist || 1)), dist };
+        }
+      }
+      if (!best) {
+        return { pc: me[0], s: 0, dir: new THREE.Vector3(1, 0, 0), speed: V_MIN, power: 0, t: 0, dur: 0.8 };
+      }
+      const speed = clamp(Math.sqrt(2 * TABLE_DECEL * (best.dist + 0.8)), V_MIN, V_MAX);
+      candidates.push({ pc: best.pc, target: best.target, dir: best.dir, speed, score: 999, hitOffset: 0 });
+    }
+
+    candidates.sort((a, b) => a.score - b.score);
+    // Hard consistently takes the best calculated shot; lower levels sometimes choose a less optimal lane.
+    const choiceIndex = this.cfg.level === 'hard'
+      ? 0
+      : Math.floor(Math.random() * Math.min(candidates.length, lv.pool));
+    const choice = candidates[choiceIndex] || candidates[0];
+    const noise = this.cfg.level === 'hard' ? 0.006 : lv.angle * 0.45;
+    const dir = choice.dir.clone().applyAxisAngle(UP, (Math.random() * 2 - 1) * noise).normalize();
+    const speed = clamp(choice.speed * (1 + (Math.random() * 2 - 1) * (this.cfg.level === 'hard' ? 0.025 : lv.power)), V_MIN, V_MAX);
 
     return {
-      pc: c.m,
-      s: ((Math.random() * 2 - 1) * lv.offset * c.m.length) / 2,
+      pc: choice.pc,
+      s: clamp(choice.hitOffset, -choice.pc.length * 0.46, choice.pc.length * 0.46),
       dir,
       speed,
       power: (speed - V_MIN) / (V_MAX - V_MIN),
       t: 0,
-      dur: 0.95,
+      dur: this.cfg.level === 'hard' ? 1.15 : 0.95,
     };
   }
 
