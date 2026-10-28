@@ -49,6 +49,7 @@ export const ModeSelectScreen: React.FC<ModeSelectScreenProps> = ({
         <div className="text-[10px] sm:text-xs font-bold uppercase tracking-[0.2em] text-[#ff0044] flex items-center gap-2">
           <span className="w-1.5 h-1.5 rounded-full bg-[#ff0044] animate-pulse" />
           <span>PF_CORE // v0814</span>
+          <span className="ml-2 text-[8px] sm:text-[9px] font-medium tracking-[0.12em] text-white/35">BY TANVIR RAHMAN</span>
         </div>
 
         <div className="flex items-center gap-3">
