@@ -349,6 +349,12 @@ export const App: React.FC = () => {
             players={settings.players}
             onPlayAgain={startMatch}
             onChangeSettings={() => setScreen('setup_roster')}
+            onMainMenu={() => {
+              setActive(false);
+              setScreen('mode_select');
+              canvasRef.current?.engine?.hideAim();
+              canvasRef.current?.engine?.setAutoRotate(true);
+            }}
           />
         </div>
       )}
