@@ -54,7 +54,22 @@ class SoundSystem {
   public toggleMute(): boolean {
     this.muted = !this.muted;
     this.ensureAudio();
+    this.haptic(20);
     return this.muted;
+  }
+
+  public click() {
+    this.tick(0.16, 920, 0.035);
+  }
+
+  public haptic(ms = 18) {
+    if (typeof navigator !== 'undefined' && 'vibrate' in navigator) {
+      try {
+        navigator.vibrate(ms);
+      } catch {
+        // Ignore if vibration is restricted
+      }
+    }
   }
 }
 

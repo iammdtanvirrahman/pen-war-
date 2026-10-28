@@ -20,6 +20,7 @@ import {
   clamp,
   DEFAULT_PLAYER_1,
   DEFAULT_PLAYER_2,
+  DEFAULT_PLAYERS,
   easeInOut,
   FIXED_STEP,
   lerp,
@@ -76,6 +77,8 @@ export class PenGameEngine {
   private floorMat: CANNON.Material;
   private deck: DeckConfig;
   private tableSurfaceAdded = false;
+  private tableBody: CANNON.Body | null = null;
+  private currentOrientationPortrait: boolean | null = null;
 
   // Assets
   private table: THREE.Object3D | null = null;
@@ -104,6 +107,8 @@ export class PenGameEngine {
     format: 'single',
     level: 'medium',
     pens: 1,
+    playerCount: 2,
+    players: DEFAULT_PLAYERS.map((p) => ({ ...p })),
     player1: { ...DEFAULT_PLAYER_1 },
     player2: { ...DEFAULT_PLAYER_2 },
   };
@@ -112,6 +117,8 @@ export class PenGameEngine {
     format: 'single',
     level: 'medium',
     pens: 1,
+    playerCount: 2,
+    players: DEFAULT_PLAYERS.map((p) => ({ ...p })),
     player1: { ...DEFAULT_PLAYER_1 },
     player2: { ...DEFAULT_PLAYER_2 },
   };
@@ -123,6 +130,10 @@ export class PenGameEngine {
   private animationFrameId: number | null = null;
   private previousTime = performance.now() / 1000;
   private reduceMotion = false;
+  private onPointerDownHandler = (e: PointerEvent) => this.handlePointerDown(e);
+  private onPointerMoveHandler = (e: PointerEvent) => this.handlePointerMove(e);
+  private onPointerUpHandler = (e: PointerEvent) => this.endDrag(e, false);
+  private onPointerCancelHandler = (e: PointerEvent) => this.endDrag(e, true);
 
   // Scratch vectors for math
   private _q = new THREE.Quaternion();
@@ -423,28 +434,55 @@ export class PenGameEngine {
     return t;
   }
 
+  public isPortraitMode(): boolean {
+    const w = this.container.clientWidth || window.innerWidth;
+    const h = this.container.clientHeight || window.innerHeight;
+    return w < h;
+  }
+
   private normalizeTable(obj: THREE.Object3D) {
+    const isPortrait = this.isPortraitMode();
+    obj.rotation.set(0, 0, 0);
+    obj.scale.set(1, 1, 1);
+    obj.position.set(0, 0, 0);
+    obj.updateMatrixWorld(true);
+
     const b = new THREE.Box3().setFromObject(obj);
     const size = b.getSize(new THREE.Vector3());
-    const center = b.getCenter(new THREE.Vector3());
     const scale = 5.8 / Math.max(size.x, size.z);
+
+    const rawLongIsX = size.x >= size.z;
+    const targetLongAlongZ = isPortrait;
+    const needRotate = rawLongIsX ? targetLongAlongZ : !targetLongAlongZ;
+
+    obj.rotation.y = needRotate ? Math.PI / 2 : 0;
     obj.scale.setScalar(scale);
-    obj.position.x = -center.x * scale;
-    obj.position.z = -center.z * scale;
-    obj.position.y = -b.min.y * scale;
+    obj.updateMatrixWorld(true);
+
+    const bRot = new THREE.Box3().setFromObject(obj);
+    const centerRot = bRot.getCenter(new THREE.Vector3());
+    obj.position.x = -centerRot.x;
+    obj.position.z = -centerRot.z;
+    obj.position.y = -bRot.min.y;
+    obj.updateMatrixWorld(true);
   }
 
   private makeFallbackTable(): THREE.Group {
+    const isPortrait = this.isPortraitMode();
     const g = new THREE.Group();
     const wood = new THREE.MeshStandardMaterial({ color: '#8c5635', roughness: 0.78 });
-    const top = new THREE.Mesh(new THREE.BoxGeometry(5.6, 0.22, 3.5), wood);
+    const xDim = isPortrait ? 3.5 : 5.6;
+    const zDim = isPortrait ? 5.6 : 3.5;
+    const top = new THREE.Mesh(new THREE.BoxGeometry(xDim, 0.22, zDim), wood);
     top.position.y = 1;
     top.castShadow = true;
     top.receiveShadow = true;
     g.add(top);
     const legsMat = new THREE.MeshStandardMaterial({ color: '#514039', roughness: 0.82 });
-    for (const x of [-2.45, 2.45]) {
-      for (const z of [-1.45, 1.45]) {
+    const halfX = (xDim - 0.7) / 2;
+    const halfZ = (zDim - 0.7) / 2;
+    for (const x of [-halfX, halfX]) {
+      for (const z of [-halfZ, halfZ]) {
         const leg = new THREE.Mesh(new THREE.BoxGeometry(0.16, 1, 0.16), legsMat);
         leg.position.set(x, 0.48, z);
         leg.castShadow = true;
@@ -482,7 +520,6 @@ export class PenGameEngine {
   }
 
   private setupPhysicsSurface(topY: number, rect: { cx: number; cz: number; halfX: number; halfZ: number }) {
-    if (this.tableSurfaceAdded) return;
     const hx = Math.max(0.5, rect.halfX - 0.012);
     const hz = Math.max(0.5, rect.halfZ - 0.012);
     this.deck.cx = rect.cx;
@@ -491,21 +528,25 @@ export class PenGameEngine {
     this.deck.halfZ = hz;
     this.deck.y = topY + 0.006;
 
-    const xLong = hx >= hz;
-    this.deck.L = xLong ? new THREE.Vector3(1, 0, 0) : new THREE.Vector3(0, 0, 1);
-    this.deck.S = xLong ? new THREE.Vector3(0, 0, 1) : new THREE.Vector3(1, 0, 0);
-    this.deck.halfL = xLong ? hx : hz;
-    this.deck.halfS = xLong ? hz : hx;
-    this.deck.baseYaw = xLong ? 0 : Math.PI / 2;
+    // L is ALWAYS lateral across the player's screen (X axis)
+    // S is ALWAYS front-to-back depth towards opponent (Z axis)
+    this.deck.L = new THREE.Vector3(1, 0, 0);
+    this.deck.S = new THREE.Vector3(0, 0, 1);
+    this.deck.halfL = hx;
+    this.deck.halfS = hz;
+    this.deck.baseYaw = 0;
 
     const th = 0.16;
-    const top = new CANNON.Body({
+    if (this.tableBody) {
+      this.physicsWorld.removeBody(this.tableBody);
+    }
+    this.tableBody = new CANNON.Body({
       mass: 0,
       material: this.tableMat,
       shape: new CANNON.Box(new CANNON.Vec3(hx, th / 2, hz)),
     });
-    top.position.set(rect.cx, this.deck.y - th / 2, rect.cz);
-    this.physicsWorld.addBody(top);
+    this.tableBody.position.set(rect.cx, this.deck.y - th / 2, rect.cz);
+    this.physicsWorld.addBody(this.tableBody);
 
     const floorBody = new CANNON.Body({
       mass: 0,
@@ -765,8 +806,15 @@ export class PenGameEngine {
     return { mesh: g, mats, length: 0.73, radius: 0.032, weight: modelMeta.weight };
   }
 
+  private getPlayerConfig(player: number) {
+    if (this.cfg.players && this.cfg.players[player]) {
+      return this.cfg.players[player];
+    }
+    return player === 0 ? this.cfg.player1 : this.cfg.player2;
+  }
+
   private createPiece(player: number, idx: number, count: number, spacing: number): Piece {
-    const playerCustom = player === 0 ? this.cfg.player1 : this.cfg.player2;
+    const playerCustom = this.getPlayerConfig(player);
     const { mesh, mats, length, radius, weight } = this.createCustomPenMesh(playerCustom.model, playerCustom);
 
     const L = Math.max(0.4, length);
@@ -792,13 +840,28 @@ export class PenGameEngine {
     body.inertia.set(Ix, Iyz, Iyz);
     body.invInertia.set(1 / Ix, 1 / Iyz, 1 / Iyz);
 
-    const side = player === 0 ? 1 : -1;
-    const l = (idx - (count - 1) / 2) * spacing;
-    const pos = new THREE.Vector3(this.deck.cx, 0, this.deck.cz)
-      .addScaledVector(this.deck.L, l)
-      .addScaledVector(this.deck.S, side * this.deck.halfS * 0.5);
-    body.position.set(pos.x, this.deck.y + r + 0.002, pos.z);
-    body.quaternion.setFromAxisAngle(new CANNON.Vec3(0, 1, 0), this.deck.baseYaw + YAWS[idx % 4] * side);
+    const isSingle = this.cfg.format === 'single';
+    const numPlayers = isSingle ? (this.cfg.playerCount || 2) : 2;
+
+    if (isSingle && numPlayers >= 3) {
+      const angle = (2 * Math.PI * player) / numPlayers - Math.PI / 2;
+      const rx = Math.cos(angle) * (this.deck.halfL * 0.72);
+      const rz = Math.sin(angle) * (this.deck.halfS * 0.62);
+      const pos = new THREE.Vector3(this.deck.cx, 0, this.deck.cz)
+        .addScaledVector(this.deck.L, rx)
+        .addScaledVector(this.deck.S, rz);
+      body.position.set(pos.x, this.deck.y + r + 0.002, pos.z);
+      const facingYaw = Math.atan2(-rz, -rx) + (YAWS[player % 4] || 0.1);
+      body.quaternion.setFromAxisAngle(new CANNON.Vec3(0, 1, 0), facingYaw);
+    } else {
+      const side = player === 0 ? 1 : -1;
+      const l = (idx - (count - 1) / 2) * spacing;
+      const pos = new THREE.Vector3(this.deck.cx, 0, this.deck.cz)
+        .addScaledVector(this.deck.L, l)
+        .addScaledVector(this.deck.S, side * this.deck.halfS * 0.5);
+      body.position.set(pos.x, this.deck.y + r + 0.002, pos.z);
+      body.quaternion.setFromAxisAngle(new CANNON.Vec3(0, 1, 0), this.deck.baseYaw + YAWS[idx % 4] * side);
+    }
     body.updateInertiaWorld(true);
 
     body.addEventListener('collide', (e: { contact: { getImpactVelocityAlongNormal: () => number } }) => {
@@ -810,8 +873,8 @@ export class PenGameEngine {
     mesh.quaternion.set(body.quaternion.x, body.quaternion.y, body.quaternion.z, body.quaternion.w);
     this.group.add(mesh);
 
-    // Blue circle table-surface glow under active pens
-    const haloColor = new THREE.Color(0x38bdf8);
+    // Dynamic player colored halo table-surface glow under active pens
+    const haloColor = new THREE.Color(playerCustom.color || 0x38bdf8);
     const haloMat = new THREE.MeshBasicMaterial({
       color: haloColor,
       map: this.haloTexture,
@@ -825,7 +888,7 @@ export class PenGameEngine {
     const halo = new THREE.Group();
     const hm = new THREE.Mesh(this.haloGeometry, haloMat);
     hm.rotation.x = -Math.PI / 2;
-    hm.scale.set(0.92, 0.92, 1); // Exact equal circle diameter
+    hm.scale.set(0.92, 0.92, 1);
     hm.renderOrder = 4;
     halo.add(hm);
     this.scene.add(halo);
@@ -850,11 +913,18 @@ export class PenGameEngine {
   }
 
   public spawnPieces() {
-    const n = this.cfg.pens;
-    const spacing = Math.min(1.25, (this.deck.halfL * 2 - 1.3) / Math.max(1, n));
-    for (let p = 0; p < 2; p++) {
-      for (let i = 0; i < n; i++) {
-        this.pieces.push(this.createPiece(p, i, n, spacing));
+    if (this.cfg.format === 'single') {
+      const numPlayers = this.cfg.playerCount || 2;
+      for (let p = 0; p < numPlayers; p++) {
+        this.pieces.push(this.createPiece(p, 0, 1, 1.0));
+      }
+    } else {
+      const n = this.cfg.pens;
+      const spacing = Math.min(1.25, (this.deck.halfL * 2 - 1.3) / Math.max(1, n));
+      for (let p = 0; p < 2; p++) {
+        for (let i = 0; i < n; i++) {
+          this.pieces.push(this.createPiece(p, i, n, spacing));
+        }
       }
     }
   }
@@ -880,17 +950,33 @@ export class PenGameEngine {
   }
 
   public viewFor(p: number): CameraView {
-    const side = p === 0 ? 1 : -1;
+    const isSingle = this.cfg.format === 'single';
+    const numPlayers = isSingle ? (this.cfg.playerCount || 2) : 2;
     const aspect = (this.container.clientWidth || window.innerWidth) / (this.container.clientHeight || window.innerHeight);
+    const isPortrait = aspect < 1.0;
     const tanV = Math.tan(THREE.MathUtils.degToRad(this.camera.fov / 2));
     const tanH = tanV * aspect;
-    const pitch = THREE.MathUtils.degToRad(48);
-    const dH = (this.deck.halfL * 1.1 + 0.25) / tanH;
-    const dV = (this.deck.halfS * Math.sin(pitch) * 1.3 + 0.5) / tanV;
-    const d = clamp(Math.max(dH, dV), 4.2, 22);
+    const pitch = THREE.MathUtils.degToRad(isPortrait ? 50 : 48);
+    const dH = (this.deck.halfL * 1.15 + 0.2) / tanH;
+    const dV = (this.deck.halfS * Math.sin(pitch) * 1.25 + 0.4) / tanV;
+    const d = clamp(Math.max(dH, dV), 4.0, 22);
+
+    if (isSingle && numPlayers >= 3) {
+      const angle = (2 * Math.PI * p) / numPlayers - Math.PI / 2;
+      const target = new THREE.Vector3(this.deck.cx, this.deck.y + 0.05, this.deck.cz);
+      const camRadius = Math.max(3.8, d * 0.9);
+      const pos = new THREE.Vector3(
+        this.deck.cx + Math.cos(angle) * camRadius,
+        this.deck.y + d * Math.sin(pitch),
+        this.deck.cz + Math.sin(angle) * camRadius
+      );
+      return { pos, target };
+    }
+
+    const side = p === 0 ? 1 : -1;
     const target = new THREE.Vector3(this.deck.cx, this.deck.y + 0.05, this.deck.cz).addScaledVector(
       this.deck.S,
-      side * this.deck.halfS * 0.08
+      side * this.deck.halfS * (isPortrait ? 0.14 : 0.08)
     );
     const pos = target.clone().addScaledVector(this.deck.S, side * d * Math.cos(pitch));
     pos.y += d * Math.sin(pitch);
@@ -903,9 +989,9 @@ export class PenGameEngine {
     const aspect = (this.container.clientWidth || window.innerWidth) / (this.container.clientHeight || window.innerHeight);
     const tanV = Math.tan(THREE.MathUtils.degToRad(this.camera.fov / 2));
     const tanH = tanV * aspect;
-    const dH = (this.deck.halfL * 1.18 + 0.35) / tanH;
-    const dV = (this.deck.halfS * 1.25 + 0.45) / tanV;
-    const d = clamp(Math.max(dH, dV), 4.8, 22);
+    const dH = (this.deck.halfL * 1.18 + 0.25) / tanH;
+    const dV = (this.deck.halfS * 1.25 + 0.35) / tanV;
+    const d = clamp(Math.max(dH, dV), 4.5, 22);
     const target = new THREE.Vector3(this.deck.cx, this.deck.y + 0.05, this.deck.cz);
     // Slight offset on Z to keep spherical coords calculation completely stable
     const pos = new THREE.Vector3(this.deck.cx, this.deck.y + d, this.deck.cz + 0.001);
@@ -1091,76 +1177,68 @@ export class PenGameEngine {
     this.notifyGameState();
   }
 
-  private bindEvents() {
-    const el = this.renderer.domElement;
+  private handlePointerDown(e: PointerEvent) {
+    if (!this.active || this.state !== 'aim' || this.isAi(this.turn) || this.drag) return;
+    if (e.pointerType === 'mouse' && e.button !== 0) return;
+    const pick = this.pickPen(e.clientX, e.clientY, e.pointerType !== 'mouse');
+    if (!pick) return; // Allow orbit controls
 
-    el.addEventListener(
-      'pointerdown',
-      (e: PointerEvent) => {
-        if (!this.active || this.state !== 'aim' || this.isAi(this.turn) || this.drag) return;
-        if (e.pointerType === 'mouse' && e.button !== 0) return;
-        const pick = this.pickPen(e.clientX, e.clientY, e.pointerType !== 'mouse');
-        if (!pick) return; // Allow orbit controls
+    e.stopPropagation();
+    e.preventDefault();
+    sound.ensureAudio();
 
-        e.stopPropagation();
-        e.preventDefault();
-        sound.ensureAudio();
+    if (pick.pc.player !== this.turn) {
+      const whose = this.possessive(pick.pc.player).replace(/^Your$/, 'yours');
+      this.callbacks.onToast?.(`That pen belongs to ${whose}. Flick your own pen!`, 2500);
+      return;
+    }
 
-        if (pick.pc.player !== this.turn) {
-          const whose = this.possessive(pick.pc.player).replace(/^Your$/, 'yours');
-          this.callbacks.onToast?.(`That pen belongs to ${whose}. Flick your own pen!`, 2500);
-          return;
-        }
+    const F0 = this.rayToPlane(e.clientX, e.clientY, pick.pc.body.position.y);
+    if (!F0) return;
 
-        const F0 = this.rayToPlane(e.clientX, e.clientY, pick.pc.body.position.y);
-        if (!F0) return;
-
-        this.drag = {
-          pc: pick.pc,
-          s: pick.s,
-          F0,
-          pointerId: e.pointerId,
-          dir: null,
-          power: 0,
-          speed: 0,
-          offset: new THREE.Vector3(),
-        };
-        this.showAim(this.drag.pc, this.drag.s, null, 0, 0, null);
-        this.setPowerUI(0, this.drag.s, this.drag.pc.length, false);
-      },
-      true
-    );
-
-    const onPointerMove = (e: PointerEvent) => {
-      if (!this.drag || e.pointerId !== this.drag.pointerId) return;
-      const F = this.rayToPlane(e.clientX, e.clientY, this.drag.pc.body.position.y);
-      if (!F) return;
-      const pull = this.drag.F0.clone().sub(F);
-      pull.y = 0;
-      const dist = pull.length();
-      this.drag.offset.copy(F).sub(this.drag.F0);
-      this.drag.offset.y = 0;
-
-      if (dist < MIN_PULL) {
-        this.drag.dir = null;
-        this.drag.power = 0;
-        this.showAim(this.drag.pc, this.drag.s, null, 0, 0, null);
-        this.setPowerUI(0, this.drag.s, this.drag.pc.length, false);
-      } else {
-        this.drag.dir = pull.normalize();
-        this.drag.power = pullToPower(dist);
-        this.drag.speed = speedOf(this.drag.power);
-        this.showAim(this.drag.pc, this.drag.s, this.drag.dir, this.drag.power, this.drag.speed, this.drag.offset);
-        this.setPowerUI(this.drag.power, this.drag.s, this.drag.pc.length, true);
-      }
+    this.drag = {
+      pc: pick.pc,
+      s: pick.s,
+      F0,
+      pointerId: e.pointerId,
+      dir: null,
+      power: 0,
+      speed: 0,
+      offset: new THREE.Vector3(),
     };
+    this.showAim(this.drag.pc, this.drag.s, null, 0, 0, null);
+    this.setPowerUI(0, this.drag.s, this.drag.pc.length, false);
+  }
 
-    const onPointerUp = (e: PointerEvent) => this.endDrag(e, false);
-    const onPointerCancel = (e: PointerEvent) => this.endDrag(e, true);
+  private handlePointerMove(e: PointerEvent) {
+    if (!this.drag || e.pointerId !== this.drag.pointerId) return;
+    const F = this.rayToPlane(e.clientX, e.clientY, this.drag.pc.body.position.y);
+    if (!F) return;
+    const pull = this.drag.F0.clone().sub(F);
+    pull.y = 0;
+    const dist = pull.length();
+    this.drag.offset.copy(F).sub(this.drag.F0);
+    this.drag.offset.y = 0;
 
-    window.addEventListener('pointermove', onPointerMove);
-    window.addEventListener('pointerup', onPointerUp);
-    window.addEventListener('pointercancel', onPointerCancel);
+    if (dist < MIN_PULL) {
+      this.drag.dir = null;
+      this.drag.power = 0;
+      this.showAim(this.drag.pc, this.drag.s, null, 0, 0, null);
+      this.setPowerUI(0, this.drag.s, this.drag.pc.length, false);
+    } else {
+      this.drag.dir = pull.normalize();
+      this.drag.power = pullToPower(dist);
+      this.drag.speed = speedOf(this.drag.power);
+      this.showAim(this.drag.pc, this.drag.s, this.drag.dir, this.drag.power, this.drag.speed, this.drag.offset);
+      this.setPowerUI(this.drag.power, this.drag.s, this.drag.pc.length, true);
+    }
+  }
+
+  private bindEvents() {
+    this.renderer.domElement.addEventListener('pointerdown', this.onPointerDownHandler, true);
+    window.addEventListener('pointermove', this.onPointerMoveHandler);
+    window.addEventListener('pointerup', this.onPointerUpHandler);
+    window.addEventListener('pointercancel', this.onPointerCancelHandler);
   }
 
   private endDrag(e: PointerEvent, cancel: boolean) {
@@ -1292,22 +1370,32 @@ export class PenGameEngine {
       pc.body.angularVelocity.set(0, 0, 0);
       pc.body.sleep();
     }
-    const alive = this.counts();
-    if (alive[0] === 0 || alive[1] === 0) {
-      this.finishMatch(alive);
+    const isSingle = this.cfg.format === 'single';
+    const numPlayers = isSingle ? (this.cfg.playerCount || 2) : 2;
+    const alivePlayers = Array.from(new Set(this.pieces.filter((x) => x.alive).map((x) => x.player)));
+
+    if (alivePlayers.length <= 1) {
+      const winner = alivePlayers.length === 1 ? alivePlayers[0] : -1;
+      const remaining = alivePlayers.length === 1 ? this.pieces.filter((x) => x.alive && x.player === winner).length : 0;
+      this.finishMatch(winner, remaining);
       return;
     }
-    this.beginTurn(1 - this.turn);
+
+    let nextTurn = (this.turn + 1) % numPlayers;
+    let guard = 0;
+    while (!this.pieces.some((pc) => pc.alive && pc.player === nextTurn) && guard < numPlayers) {
+      nextTurn = (nextTurn + 1) % numPlayers;
+      guard++;
+    }
+    this.beginTurn(nextTurn);
   }
 
-  private finishMatch(alive: [number, number]) {
+  private finishMatch(winner: number, remaining: number) {
     this.state = 'over';
     this.hideAim();
     this.notifyGameState();
-    const w = alive[0] > 0 ? 0 : alive[1] > 0 ? 1 : -1;
-    const remaining: number = w === 0 ? alive[0] : w === 1 ? alive[1] : 0;
     setTimeout(() => {
-      this.callbacks.onMatchFinish?.(w, remaining);
+      this.callbacks.onMatchFinish?.(winner, remaining);
     }, 900);
   }
 
@@ -1436,7 +1524,27 @@ export class PenGameEngine {
     this.camera.updateProjectionMatrix();
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.7));
     this.renderer.setSize(w, h);
-    if (this.assetsReady && this.active && !this.userOrbit && !this.camTween) {
+
+    const isPortrait = w < h;
+    if (this.currentOrientationPortrait !== null && this.currentOrientationPortrait !== isPortrait && this.table) {
+      this.currentOrientationPortrait = isPortrait;
+      this.normalizeTable(this.table);
+      const bb = new THREE.Box3().setFromObject(this.table);
+      const topY = bb.max.y;
+      const rect = this.measureDeck(this.table, topY) || {
+        cx: (bb.min.x + bb.max.x) / 2,
+        cz: (bb.min.z + bb.max.z) / 2,
+        halfX: (bb.max.x - bb.min.x) / 2,
+        halfZ: (bb.max.z - bb.min.z) / 2,
+      };
+      this.setupPhysicsSurface(topY, rect);
+      if (!this.active) {
+        this.clearPieces();
+        this.spawnPieces();
+      }
+    }
+
+    if (this.assetsReady && !this.userOrbit && !this.camTween) {
       this.currentView = this.isTopView ? this.topView() : this.viewFor(this.turn);
       this.camera.position.copy(this.currentView.pos);
       this.controls.target.copy(this.currentView.target);
@@ -1517,25 +1625,34 @@ export class PenGameEngine {
 
     this.cfg = { ...this.settings };
     this.spawnPieces();
+    this.currentOrientationPortrait = this.isPortraitMode();
     this.assetsReady = true;
     this.callbacks.onStatusChange?.('Ready', true);
   }
 
   public isAi(p: number): boolean {
+    if (this.cfg.players && this.cfg.players[p]) {
+      return this.cfg.players[p].isAi;
+    }
     return this.cfg.mode === 'ai' && p === 1;
   }
 
   public playerName(p: number): string {
+    if (this.cfg.players && this.cfg.players[p]) {
+      return this.cfg.players[p].name || `Player ${p + 1}`;
+    }
     if (this.cfg.mode === 'ai') return p === 0 ? this.cfg.player1.name || 'You' : 'AI';
     return p === 0 ? this.cfg.player1.name || 'Player 1' : this.cfg.player2.name || 'Player 2';
   }
 
   public playerColor(p: number): string {
+    if (this.cfg.players && this.cfg.players[p]) {
+      return this.cfg.players[p].color;
+    }
     return p === 0 ? this.cfg.player1.color : this.cfg.player2.color;
   }
 
   public possessive(p: number): string {
-    if (this.cfg.mode === 'ai') return p === 0 ? 'Your' : "AI's";
     return `${this.playerName(p)}'s`;
   }
 
@@ -1558,10 +1675,19 @@ export class PenGameEngine {
     this.renderer.render(this.scene, this.camera);
   };
 
+  public setCallbacks(callbacks: PenEngineCallbacks) {
+    this.callbacks = callbacks;
+  }
+
   public destroy() {
     if (this.animationFrameId !== null) {
       cancelAnimationFrame(this.animationFrameId);
     }
+    window.removeEventListener('pointermove', this.onPointerMoveHandler);
+    window.removeEventListener('pointerup', this.onPointerUpHandler);
+    window.removeEventListener('pointercancel', this.onPointerCancelHandler);
+    this.renderer.domElement.removeEventListener('pointerdown', this.onPointerDownHandler, true);
+    this.controls.dispose();
     this.clearPieces();
     this.renderer.dispose();
     if (this.renderer.domElement.parentElement) {

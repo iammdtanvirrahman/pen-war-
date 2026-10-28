@@ -27,15 +27,26 @@ export const GameCanvas = forwardRef<GameCanvasHandle, GameCanvasProps>(({ callb
 
     const onResize = () => {
       engine.resize();
+      setTimeout(() => {
+        engine.resize();
+      }, 150);
     };
     window.addEventListener('resize', onResize);
+    window.addEventListener('orientationchange', onResize);
 
     return () => {
       window.removeEventListener('resize', onResize);
+      window.removeEventListener('orientationchange', onResize);
       engine.destroy();
       engineRef.current = null;
     };
   }, []);
+
+  useEffect(() => {
+    if (engineRef.current) {
+      engineRef.current.setCallbacks(callbacks);
+    }
+  }, [callbacks]);
 
   return (
     <div

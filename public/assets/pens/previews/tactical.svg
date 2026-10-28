@@ -1,0 +1,83 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 160" width="100%" height="100%">
+  <defs>
+    <!-- Background subtle amber/crimson glow -->
+    <radialGradient id="tac-glow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#f59e0b" stop-opacity="0.12"/>
+      <stop offset="100%" stop-color="#f59e0b" stop-opacity="0"/>
+    </radialGradient>
+    
+    <!-- Anodized Black Machined Metal -->
+    <linearGradient id="tac-body" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#475569"/>
+      <stop offset="20%" stop-color="#1e293b"/>
+      <stop offset="50%" stop-color="#090d16"/>
+      <stop offset="80%" stop-color="#1e293b"/>
+      <stop offset="100%" stop-color="#0f172a"/>
+    </linearGradient>
+
+    <!-- Hardened Tungsten Bezel -->
+    <linearGradient id="tac-tungsten" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#e2e8f0"/>
+      <stop offset="35%" stop-color="#64748b"/>
+      <stop offset="70%" stop-color="#334155"/>
+      <stop offset="100%" stop-color="#1e293b"/>
+    </linearGradient>
+
+    <!-- Diamond Knurl Texture -->
+    <pattern id="tac-knurl" width="10" height="10" patternUnits="userSpaceOnUse">
+      <path d="M 0 5 L 5 0 L 10 5 L 5 10 Z" fill="#0b0f19" stroke="#64748b" stroke-width="0.8"/>
+    </pattern>
+
+    <filter id="tac-shadow" x="-10%" y="-10%" width="120%" height="150%">
+      <feDropShadow dx="0" dy="10" stdDeviation="8" flood-color="#000000" flood-opacity="0.8"/>
+    </filter>
+  </defs>
+
+  <ellipse cx="300" cy="80" rx="260" ry="46" fill="url(#tac-glow)" />
+
+  <g filter="url(#tac-shadow)">
+    <!-- Tungsten Carbide Strike Spike & Glass Breaker (Left) -->
+    <polygon points="22,80 44,74 44,86" fill="url(#tac-tungsten)"/>
+    <circle cx="21" cy="80" r="1.5" fill="#f8fafc"/>
+
+    <!-- Aggressive Beveled Attack Crown -->
+    <path d="M 44 74 L 62 67 L 62 93 L 44 86 Z" fill="#334155"/>
+    <line x1="53" y1="69" x2="53" y2="91" stroke="#f59e0b" stroke-width="2"/>
+
+    <!-- Heavy Knurled Grip Section -->
+    <rect x="62" y="64" width="75" height="32" rx="2" fill="url(#tac-knurl)"/>
+
+    <!-- Machined Finger Grooves -->
+    <g fill="#0b0f19" stroke="#475569" stroke-width="1">
+      <rect x="142" y="65" width="8" height="30" rx="2"/>
+      <rect x="154" y="65" width="8" height="30" rx="2"/>
+      <rect x="166" y="65" width="8" height="30" rx="2"/>
+    </g>
+
+    <!-- Main Fluted CNC Aircraft Aluminum Barrel -->
+    <rect x="178" y="63" width="280" height="34" rx="3" fill="url(#tac-body)"/>
+
+    <!-- Longitudinal CNC Milled Flutes -->
+    <line x1="184" y1="70" x2="445" y2="70" stroke="#000000" stroke-width="2.5" stroke-linecap="round"/>
+    <line x1="184" y1="72" x2="445" y2="72" stroke="#475569" stroke-width="1" stroke-linecap="round"/>
+
+    <line x1="184" y1="88" x2="445" y2="88" stroke="#000000" stroke-width="2.5" stroke-linecap="round"/>
+    <line x1="184" y1="90" x2="445" y2="90" stroke="#475569" stroke-width="1" stroke-linecap="round"/>
+
+    <!-- Anodized Gold Accent Ring -->
+    <rect x="446" y="63" width="6" height="34" rx="1" fill="#f59e0b"/>
+
+    <!-- Heavy Duty Bolted Steel Tactical Clip -->
+    <path d="M 440 58 L 340 58 Q 330 58 335 64 L 345 64 Q 350 62 440 62 Z" fill="#cbd5e1"/>
+    <!-- Torx retention screw bolts -->
+    <circle cx="434" cy="60" r="2.2" fill="#0f172a" stroke="#cbd5e1" stroke-width="0.8"/>
+    <circle cx="420" cy="60" r="2.2" fill="#0f172a" stroke="#cbd5e1" stroke-width="0.8"/>
+
+    <!-- Threaded Tail Cap with Lanyard Hole -->
+    <path d="M 452 64 L 485 66 Q 494 80 485 94 L 452 96 Z" fill="url(#tac-tungsten)"/>
+    <circle cx="478" cy="80" r="4.5" fill="#0b0f19" stroke="#64748b" stroke-width="1.5"/>
+  </g>
+
+  <!-- Technical Spec Label -->
+  <text x="300" y="132" text-anchor="middle" font-family="'Space Mono', monospace" font-size="11" font-weight="700" fill="#f59e0b" letter-spacing="3">HEAVY TACTICAL PEN · HIGH MOMENTUM 52g</text>
+</svg>

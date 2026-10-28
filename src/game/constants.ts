@@ -14,6 +14,7 @@ export const PEN_MODELS: PenModelOption[] = [
     name: 'Faber-Castell Grip 2011',
     subtitle: 'Classic GLB Asset',
     description: 'Authentic 3D model with signature grip dots and spring-loaded metal clip. Superbly balanced.',
+    previewImage: '/assets/pens/previews/faber_castell.svg',
     weight: 0.042,
     speedFactor: 1.0,
     spinFactor: 1.0,
@@ -24,6 +25,7 @@ export const PEN_MODELS: PenModelOption[] = [
     name: 'Precision Fineliner',
     subtitle: 'High Stability',
     description: 'Slender matte drafting casing with knurled grip ring. Low aerodynamic drag and straight slide.',
+    previewImage: '/assets/pens/previews/fineliner.svg',
     weight: 0.038,
     speedFactor: 1.08,
     spinFactor: 0.88,
@@ -34,6 +36,7 @@ export const PEN_MODELS: PenModelOption[] = [
     name: 'Heavy Tactical Pen',
     subtitle: 'High Momentum',
     description: 'Solid machined metal with ribbed facets and weighted tungsten glass-breaker cap. Hits opponents hard.',
+    previewImage: '/assets/pens/previews/tactical.svg',
     weight: 0.052,
     speedFactor: 0.92,
     spinFactor: 1.15,
@@ -44,6 +47,7 @@ export const PEN_MODELS: PenModelOption[] = [
     name: 'Gel Rollerball',
     subtitle: 'High Spin',
     description: 'Comfort rubber grip with ergonomic taper. Sensitive off-centre strikes produce dramatic curl.',
+    previewImage: '/assets/pens/previews/rollerball.svg',
     weight: 0.040,
     speedFactor: 1.04,
     spinFactor: 1.25,
@@ -65,6 +69,24 @@ export const COLOR_PALETTE_P2 = [
   { name: 'Emerald Jade', hex: '#10b981' },
   { name: 'Titanium White', hex: '#e4e4e7' },
   { name: 'Cobalt Blue', hex: '#3b82f6' },
+];
+
+export const ALL_PLAYER_COLORS = [
+  '#ff4d5e', // P1: Crimson
+  '#4cc9f0', // P2: Neon Cyan
+  '#10b981', // P3: Emerald
+  '#f59e0b', // P4: Amber Gold
+  '#a855f7', // P5: Electric Purple
+  '#ec4899', // P6: Hot Pink
+];
+
+export const DEFAULT_PLAYERS = [
+  { id: 0, name: 'Player 1', model: 'faber_castell' as const, color: '#ff4d5e', accentColor: '#ffffff', isAi: false, aiLevel: 'medium' as const },
+  { id: 1, name: 'Player 2', model: 'fineliner' as const, color: '#4cc9f0', accentColor: '#ffffff', isAi: false, aiLevel: 'medium' as const },
+  { id: 2, name: 'Player 3', model: 'tactical' as const, color: '#10b981', accentColor: '#ffffff', isAi: true, aiLevel: 'medium' as const },
+  { id: 3, name: 'Player 4', model: 'rollerball' as const, color: '#f59e0b', accentColor: '#ffffff', isAi: true, aiLevel: 'medium' as const },
+  { id: 4, name: 'Player 5', model: 'faber_castell' as const, color: '#a855f7', accentColor: '#ffffff', isAi: true, aiLevel: 'medium' as const },
+  { id: 5, name: 'Player 6', model: 'tactical' as const, color: '#ec4899', accentColor: '#ffffff', isAi: true, aiLevel: 'medium' as const },
 ];
 
 export const DEFAULT_PLAYER_1 = {

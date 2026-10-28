@@ -1,0 +1,86 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 160" width="100%" height="100%">
+  <defs>
+    <!-- Background subtle magenta/purple glow -->
+    <radialGradient id="rb-glow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#ec4899" stop-opacity="0.12"/>
+      <stop offset="100%" stop-color="#ec4899" stop-opacity="0"/>
+    </radialGradient>
+    
+    <!-- High-Gloss Polished Lacquer -->
+    <linearGradient id="rb-barrel" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#4c1d95"/>
+      <stop offset="15%" stop-color="#6d28d9"/>
+      <stop offset="35%" stop-color="#9333ea"/>
+      <stop offset="50%" stop-color="#3b0764"/>
+      <stop offset="85%" stop-color="#1e1b4b"/>
+      <stop offset="100%" stop-color="#0f0e26"/>
+    </linearGradient>
+
+    <!-- Translucent Gel Grip -->
+    <linearGradient id="rb-gel" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#a855f7" stop-opacity="0.8"/>
+      <stop offset="40%" stop-color="#7e22ce" stop-opacity="0.9"/>
+      <stop offset="80%" stop-color="#581c87" stop-opacity="0.95"/>
+      <stop offset="100%" stop-color="#3b0764"/>
+    </linearGradient>
+
+    <!-- Shiny Chrome Trim -->
+    <linearGradient id="rb-chrome" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="30%" stop-color="#e2e8f0"/>
+      <stop offset="55%" stop-color="#94a3b8"/>
+      <stop offset="80%" stop-color="#475569"/>
+      <stop offset="100%" stop-color="#cbd5e1"/>
+    </linearGradient>
+
+    <filter id="rb-shadow" x="-10%" y="-10%" width="120%" height="150%">
+      <feDropShadow dx="0" dy="10" stdDeviation="8" flood-color="#000000" flood-opacity="0.75"/>
+    </filter>
+  </defs>
+
+  <ellipse cx="300" cy="80" rx="260" ry="42" fill="url(#rb-glow)" />
+
+  <g filter="url(#rb-shadow)">
+    <!-- Ceramic Rollerball Tip (Left) -->
+    <path d="M 36 80 L 72 69 L 72 91 Z" fill="url(#rb-chrome)"/>
+    <circle cx="35" cy="80" r="2.2" fill="#38bdf8"/>
+
+    <!-- Chrome Collar Ring -->
+    <rect x="72" y="68" width="6" height="24" rx="1.5" fill="url(#rb-chrome)"/>
+
+    <!-- Ergonomic Contoured Soft Gel Grip with Ribs -->
+    <path d="M 78 68 Q 120 64 165 67 L 165 93 Q 120 96 78 92 Z" fill="url(#rb-gel)"/>
+    <!-- Subtle Gel Grip Wave Ridges -->
+    <g stroke="#c084fc" stroke-width="1.2" opacity="0.45" stroke-linecap="round">
+      <line x1="95" y1="67" x2="95" y2="93"/>
+      <line x1="110" y1="66" x2="110" y2="94"/>
+      <line x1="125" y1="66" x2="125" y2="94"/>
+      <line x1="140" y1="66.5" x2="140" y2="93.5"/>
+    </g>
+
+    <!-- Dual Chrome Center Band -->
+    <rect x="165" y="66" width="4" height="28" fill="url(#rb-chrome)"/>
+    <rect x="169" y="67" width="2" height="26" fill="#18181b"/>
+    <rect x="171" y="66" width="5" height="28" fill="url(#rb-chrome)"/>
+
+    <!-- Main Polished Metallic Body -->
+    <rect x="176" y="65.5" width="280" height="29" rx="5" fill="url(#rb-barrel)"/>
+
+    <!-- Gloss Specular Reflection Streak -->
+    <line x1="184" y1="71" x2="450" y2="71" stroke="#ffffff" stroke-width="1.8" stroke-opacity="0.4" stroke-linecap="round"/>
+
+    <!-- Rear Chrome Ring -->
+    <rect x="456" y="66" width="6" height="28" rx="1" fill="url(#rb-chrome)"/>
+
+    <!-- Tapered Rounded End Cap -->
+    <path d="M 462 67.5 L 488 71 Q 494 80 488 89 L 462 92.5 Z" fill="#2e1065"/>
+
+    <!-- Sleek Curved Designer Arch Clip -->
+    <path d="M 458 64 C 458 55, 435 52, 360 55 Q 350 56 352 61 Q 356 63 365 61 C 430 58, 452 60, 454 65 Z" fill="url(#rb-chrome)"/>
+    <!-- Blue inset gem on clip -->
+    <circle cx="448" cy="60" r="2.5" fill="#a855f7"/>
+  </g>
+
+  <!-- Technical Spec Label -->
+  <text x="300" y="132" text-anchor="middle" font-family="'Space Mono', monospace" font-size="11" font-weight="700" fill="#c084fc" letter-spacing="3">GEL ROLLERBALL · HIGH SPIN PRECISION 40g</text>
+</svg>

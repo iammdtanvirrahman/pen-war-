@@ -12,6 +12,7 @@ export interface PenModelOption {
   name: string;
   subtitle: string;
   description: string;
+  previewImage: string;
   weight: number; // in kg for physics
   speedFactor: number;
   spinFactor: number;
@@ -25,11 +26,23 @@ export interface PlayerCustomization {
   accentColor: string;
 }
 
+export interface PlayerConfig {
+  id: number;
+  name: string;
+  model: PenModelType;
+  color: string;
+  accentColor: string;
+  isAi: boolean;
+  aiLevel: AiLevel;
+}
+
 export interface GameSettings {
   mode: GameMode;
   format: MatchFormat;
   level: AiLevel;
-  pens: number; // 1, 2, 3, or 4 pens per side
+  pens: number; // 1, 2, 3, or 4 pens per side/player
+  playerCount: number; // 2, 3, 4, 5, 6 players in Single Duel; 2 or 3 per team in Team Battle
+  players: PlayerConfig[];
   player1: PlayerCustomization;
   player2: PlayerCustomization;
 }

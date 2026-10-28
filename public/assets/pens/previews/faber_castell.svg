@@ -1,0 +1,83 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 160" width="100%" height="100%">
+  <defs>
+    <!-- Background subtle radial glow -->
+    <radialGradient id="fc-glow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#ff0044" stop-opacity="0.12"/>
+      <stop offset="100%" stop-color="#ff0044" stop-opacity="0"/>
+    </radialGradient>
+    
+    <!-- Barrel gradient: Matte graphite with highlight -->
+    <linearGradient id="fc-barrel" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#3a3f45"/>
+      <stop offset="25%" stop-color="#24272c"/>
+      <stop offset="50%" stop-color="#181a1d"/>
+      <stop offset="75%" stop-color="#2d3137"/>
+      <stop offset="100%" stop-color="#121316"/>
+    </linearGradient>
+
+    <!-- Metallic cone/nib gradient -->
+    <linearGradient id="fc-metal" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#f0f3f6"/>
+      <stop offset="30%" stop-color="#a4abb5"/>
+      <stop offset="60%" stop-color="#d8dde3"/>
+      <stop offset="85%" stop-color="#606670"/>
+      <stop offset="100%" stop-color="#3c414a"/>
+    </linearGradient>
+
+    <!-- Chrome clip specular -->
+    <linearGradient id="fc-clip" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="45%" stop-color="#b0b7c2"/>
+      <stop offset="80%" stop-color="#555c66"/>
+      <stop offset="100%" stop-color="#e0e5eb"/>
+    </linearGradient>
+
+    <!-- Dot pattern for Grip 2011 -->
+    <pattern id="fc-dots" x="0" y="0" width="14" height="12" patternUnits="userSpaceOnUse">
+      <circle cx="7" cy="6" r="2.2" fill="#0d0e10" opacity="0.85"/>
+      <circle cx="7" cy="6.4" r="1.5" fill="#000000" opacity="0.9"/>
+      <circle cx="6.5" cy="5.5" r="0.8" fill="#4d535e" opacity="0.6"/>
+    </pattern>
+
+    <filter id="fc-shadow" x="-10%" y="-10%" width="120%" height="150%">
+      <feDropShadow dx="0" dy="10" stdDeviation="8" flood-color="#000000" flood-opacity="0.7"/>
+    </filter>
+  </defs>
+
+  <!-- Ambient Underglow -->
+  <ellipse cx="300" cy="80" rx="260" ry="45" fill="url(#fc-glow)" />
+
+  <g filter="url(#fc-shadow)">
+    <!-- Pen Cone / Metal Tip (Left side) -->
+    <path d="M 40 80 L 85 64 L 85 96 Z" fill="url(#fc-metal)"/>
+    <polygon points="34,80 40,78 40,82" fill="#111111"/>
+    <!-- Ballpoint tungsten sphere tip -->
+    <circle cx="33" cy="80" r="2.2" fill="#e2e8f0"/>
+
+    <!-- Front Grip Ring -->
+    <rect x="85" y="63" width="6" height="34" rx="1.5" fill="url(#fc-metal)"/>
+
+    <!-- Main Triangular Body Barrel -->
+    <rect x="91" y="62" width="370" height="36" rx="6" fill="url(#fc-barrel)"/>
+
+    <!-- Embossed Grip Dots Array (Faber-Castell 2011 signature) -->
+    <rect x="105" y="65" width="220" height="30" fill="url(#fc-dots)"/>
+
+    <!-- Center accent ring -->
+    <line x1="330" y1="62" x2="330" y2="98" stroke="#ff0044" stroke-width="2" stroke-opacity="0.8"/>
+
+    <!-- Rear End Cap -->
+    <path d="M 461 63.5 L 490 66 Q 498 80 490 94 L 461 96.5 Z" fill="url(#fc-metal)"/>
+    <circle cx="493" cy="80" r="3.5" fill="#181a1d"/>
+
+    <!-- Spring-loaded Metal Pocket Clip -->
+    <path d="M 455 60 C 455 52, 440 50, 375 50 L 370 54 L 375 56 L 440 56 C 450 56, 452 60, 452 64 Z" fill="url(#fc-clip)"/>
+    <!-- Clip attachment base -->
+    <rect x="450" y="58" width="14" height="6" rx="2" fill="url(#fc-metal)"/>
+    <!-- Clip ball stud tip -->
+    <circle cx="372" cy="53" r="3" fill="#ffffff"/>
+  </g>
+
+  <!-- Technical Spec Label -->
+  <text x="300" y="132" text-anchor="middle" font-family="'Space Mono', monospace" font-size="11" font-weight="700" fill="#a0aec0" letter-spacing="3">FABER-CASTELL GRIP 2011 · BALANCED 42g</text>
+</svg>
