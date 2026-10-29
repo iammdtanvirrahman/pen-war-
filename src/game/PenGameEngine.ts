@@ -1073,9 +1073,12 @@ export class PenGameEngine {
       if (k >= 1) this.camTween = null;
     } else if (this.state === 'moving' && this.follow && this.follow.alive && !this.userOrbit && this.currentView) {
       const p = this.follow.body.position;
-      this._cw.set(lerp(this.currentView.target.x, p.x, 0.4), this.currentView.target.y, lerp(this.currentView.target.z, p.z, 0.4));
+      // Keep the moving pen comfortably framed without letting the camera lag far behind.
+      // A stronger target blend and slightly quicker exponential smoothing make side-to-side
+      // movement feel responsive while remaining fluid on mobile.
+      this._cw.set(lerp(this.currentView.target.x, p.x, 0.62), this.currentView.target.y, lerp(this.currentView.target.z, p.z, 0.62));
       this._ct.copy(this.controls.target);
-      this.controls.target.lerp(this._cw, 1 - Math.exp(-dt * 2.5));
+      this.controls.target.lerp(this._cw, 1 - Math.exp(-dt * 4.0));
       this.camera.position.add(this._cd.subVectors(this.controls.target, this._ct));
     }
   }
