@@ -12,6 +12,7 @@ export interface AiLearningProfile {
 
 const STORAGE_KEY = 'pen-war.ai-learning.v1';
 const EMPTY: AiLearningProfile = { version: 1, shots: 0, wins: 0, families: {} };
+let cachedProfile: AiLearningProfile | null = null;
 
 function storage(): Storage | null {
   try {
@@ -23,21 +24,22 @@ function storage(): Storage | null {
 }
 
 export function loadAiLearning(): AiLearningProfile {
+  if (cachedProfile) return cachedProfile;
   try {
     const raw = storage()?.getItem(STORAGE_KEY);
-    if (!raw) return { ...EMPTY, families: {} };
+    if (!raw) return (cachedProfile = { ...EMPTY, families: {} });
     const parsed = JSON.parse(raw) as Partial<AiLearningProfile>;
     if (parsed.version !== 1 || !parsed.families || typeof parsed.families !== 'object') {
-      return { ...EMPTY, families: {} };
+      return (cachedProfile = { ...EMPTY, families: {} });
     }
-    return {
+    return (cachedProfile = {
       version: 1,
       shots: Math.max(0, Number(parsed.shots) || 0),
       wins: Math.max(0, Number(parsed.wins) || 0),
       families: parsed.families,
-    };
+    });
   } catch {
-    return { ...EMPTY, families: {} };
+    return (cachedProfile = { ...EMPTY, families: {} });
   }
 }
 
@@ -65,6 +67,7 @@ export function recordAiOutcome(key: string, reward: number): AiLearningProfile 
     for (const [oldKey] of entries.slice(0, entries.length - 120)) delete profile.families[oldKey];
   }
 
+  cachedProfile = profile;
   try {
     storage()?.setItem(STORAGE_KEY, JSON.stringify(profile));
   } catch {
@@ -74,6 +77,7 @@ export function recordAiOutcome(key: string, reward: number): AiLearningProfile 
 }
 
 export function clearAiLearning(): void {
+  cachedProfile = { ...EMPTY, families: {} };
   try {
     storage()?.removeItem(STORAGE_KEY);
   } catch {
