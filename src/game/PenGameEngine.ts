@@ -705,6 +705,12 @@ export class PenGameEngine {
       endCap.position.x = -0.29;
       endCap.castShadow = true;
       g.add(endCap);
+      // Visible pocket clip on the capped rear end.
+      const clip = new THREE.Mesh(new THREE.BoxGeometry(0.19, 0.008, 0.012), metalMat);
+      clip.position.set(-0.22, 0.031, 0);
+      clip.rotation.z = -0.06;
+      clip.castShadow = true;
+      g.add(clip);
 
       return { mesh: g, mats, length: 0.70, radius: 0.028, weight: modelMeta.weight };
     }
@@ -752,6 +758,12 @@ export class PenGameEngine {
       cap.position.x = -0.3;
       cap.castShadow = true;
       g.add(cap);
+      // Pocket clip makes the rear cap read as a real capped pen.
+      const clip = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.009, 0.012), brassMat);
+      clip.position.set(-0.22, 0.038, 0);
+      clip.rotation.z = -0.06;
+      clip.castShadow = true;
+      g.add(clip);
 
       return { mesh: g, mats, length: 0.74, radius: 0.034, weight: modelMeta.weight };
     }
@@ -802,6 +814,12 @@ export class PenGameEngine {
     cap.position.x = -0.3;
     cap.castShadow = true;
     g.add(cap);
+    // Chrome pocket clip attached to the rear cap.
+    const clip = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.009, 0.012), chromeMat);
+    clip.position.set(-0.22, 0.037, 0);
+    clip.rotation.z = -0.06;
+    clip.castShadow = true;
+    g.add(clip);
 
     return { mesh: g, mats, length: 0.73, radius: 0.032, weight: modelMeta.weight };
   }
