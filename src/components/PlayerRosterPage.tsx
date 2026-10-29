@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { AiLevel, GameSettings, PenModelType, PlayerConfig } from '../types/game';
 import { ALL_PLAYER_COLORS, PEN_MODELS } from '../game/constants';
 import { sound } from '../audio/sound';
+import { PenPreview3D } from './PenPreview3D';
 
 interface PlayerRosterPageProps {
   settings: GameSettings;
@@ -294,13 +295,8 @@ export const PlayerRosterPage: React.FC<PlayerRosterPageProps> = ({
                     </div>
 
                     {/* LOADED PEN ASSET PREVIEW IMAGE */}
-                    <div className="w-full h-12 sm:h-14 my-1 bg-[#080808] border border-white/10 flex items-center justify-center p-1 overflow-hidden relative group-hover:border-[#ff0044]/50 transition-colors">
-                      <img
-                        src={m.previewImage}
-                        alt={m.name}
-                        className="w-full h-full object-contain filter drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)] transition-transform duration-300 group-hover:scale-105"
-                        loading="eager"
-                      />
+                    <div className="w-full h-16 sm:h-20 my-1 bg-[#080808] border border-white/10 flex items-center justify-center p-1 overflow-hidden relative group-hover:border-[#ff0044]/50 transition-colors">
+                      <PenPreview3D model={m.id} color={currentPlayer?.color || '#ff4d5e'} />
                     </div>
 
                     {/* Stat Bars: Speed, Weight, Spin */}
