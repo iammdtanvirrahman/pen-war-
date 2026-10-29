@@ -245,10 +245,10 @@ export class PenGameEngine {
     this.floorMat = new CANNON.Material('floor');
 
     this.physicsWorld.addContactMaterial(
-      new CANNON.ContactMaterial(this.tableMat, this.penMat, { friction: 0, restitution: 0.0 })
+      new CANNON.ContactMaterial(this.tableMat, this.penMat, { friction: 0.12, restitution: 0.035 })
     );
     this.physicsWorld.addContactMaterial(
-      new CANNON.ContactMaterial(this.penMat, this.penMat, { friction: 0.04, restitution: 0.35 })
+      new CANNON.ContactMaterial(this.penMat, this.penMat, { friction: 0.12, restitution: 0.22 })
     );
     this.physicsWorld.addContactMaterial(
       new CANNON.ContactMaterial(this.floorMat, this.penMat, { friction: 0.3, restitution: 0.05 })
@@ -827,8 +827,8 @@ export class PenGameEngine {
       allowSleep: true,
       sleepSpeedLimit: 0.06,
       sleepTimeLimit: 0.5,
-      linearDamping: 0.01,
-      angularDamping: 0.05,
+      linearDamping: 0.004,
+      angularDamping: 0.025,
     });
     const half = L / 2 - r;
     const n = clamp(Math.ceil((2 * half) / (r * 1.5)) + 1, 3, 24);
