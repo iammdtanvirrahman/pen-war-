@@ -149,11 +149,11 @@ export const PenPreview3D: React.FC<PenPreview3DProps> = ({ model, color }) => {
       addCylinder(0.029, 0.031, 0.54, bodyMat, 0);
       addCylinder(0.032, 0.032, 0.16, rubberMat, 0.16);
       // Chrome nose and a narrow writing point, clearly separated from the barrel.
-      const nose = new THREE.Mesh(new THREE.CylinderGeometry(0.018, 0.03, 0.055, 20), chromeMat);
+      const nose = new THREE.Mesh(new THREE.CylinderGeometry(0.018, 0.03, 0.055, 20), metalMat);
       nose.rotation.z = -Math.PI / 2;
       nose.position.x = 0.29;
       penGroup.add(nose);
-      const tip = new THREE.Mesh(new THREE.ConeGeometry(0.018, 0.09, 20), chromeMat);
+      const tip = new THREE.Mesh(new THREE.ConeGeometry(0.018, 0.09, 20), metalMat);
       tip.rotation.z = -Math.PI / 2;
       tip.position.x = 0.36;
       penGroup.add(tip);
