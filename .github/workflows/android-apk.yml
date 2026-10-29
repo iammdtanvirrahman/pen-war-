@@ -5,6 +5,7 @@ on:
   push:
     branches:
       - android-app
+      - '2.0'
     paths:
       - 'src/**'
       - 'public/**'
