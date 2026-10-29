@@ -42,6 +42,7 @@ import {
   YAWS,
 } from './constants';
 import { sound } from '../audio/sound';
+import { learnedPenalty, recordAiOutcome } from './aiLearning';
 
 export interface PenEngineCallbacks {
   onStatusChange?: (status: string, ready: boolean) => void;
@@ -98,6 +99,7 @@ export class PenGameEngine {
   private follow: Piece | null = null;
   private ai: AiShotPlan | null = null;
   private aiTimer = 0;
+  private pendingAiOutcome: { key: string; ownBefore: number; foesBefore: number } | null = null;
   private hinted = false;
   private currentView: CameraView | null = null;
   private pieces: Piece[] = [];
@@ -1302,7 +1304,7 @@ export class PenGameEngine {
     const me = this.pieces.filter((p) => p.alive && p.player === this.turn);
     const foes = this.pieces.filter((p) => p.alive && p.player !== this.turn);
     const lv = AI_LEVELS[this.cfg.level] || AI_LEVELS.medium;
-    const candidates: Array<{ pc: Piece; target: Piece; dir: THREE.Vector3; speed: number; score: number; hitOffset: number }> = [];
+    const candidates: Array<{ pc: Piece; target: Piece; dir: THREE.Vector3; speed: number; score: number; hitOffset: number; learningKey: string }> = [];
 
     // Evaluate several attack lanes instead of blindly shooting at the nearest pen.
     // Hard AI scores target-to-edge pressure, collision alignment, and self-risk.
@@ -1337,7 +1339,8 @@ export class PenGameEngine {
           const collisionPenalty = miss / Math.max(0.01, hitTolerance);
           const selfRisk = ownEdge < 1.0 ? (1.0 - ownEdge) * 1.8 : 0;
           const powerPenalty = speed / V_MAX * 0.16;
-          const score = targetEdge * 1.1 + collisionPenalty * 2.8 + selfRisk + powerPenalty - edgeThreat * 0.35;
+          const learningKey = `a${Math.round(angle * 10)}-p${Math.round((speed / V_MAX) * 4)}-${ownEdge < 1 ? 'edge' : 'safe'}`;
+          const score = targetEdge * 1.1 + collisionPenalty * 2.8 + selfRisk + powerPenalty - edgeThreat * 0.35 + learnedPenalty(learningKey);
           const axis = new THREE.Vector3();
           this.penAxis(m, axis);
           axis.y = 0;
@@ -1347,7 +1350,7 @@ export class PenGameEngine {
           const hitOffset = Math.abs(alignment) > 0.35
             ? Math.sign(alignment) * m.length * (this.cfg.level === 'hard' ? 0.34 : 0.18)
             : (angle >= 0 ? 1 : -1) * m.length * (this.cfg.level === 'hard' ? 0.22 : 0.1);
-          candidates.push({ pc: m, target: f, dir, speed, score, hitOffset });
+          candidates.push({ pc: m, target: f, dir, speed, score, hitOffset, learningKey });
         }
       }
     }
@@ -1367,7 +1370,7 @@ export class PenGameEngine {
         return { pc: me[0], s: 0, dir: new THREE.Vector3(1, 0, 0), speed: V_MIN, power: 0, t: 0, dur: 0.8 };
       }
       const speed = clamp(Math.sqrt(2 * TABLE_DECEL * (best.dist + 0.8)), V_MIN, V_MAX);
-      candidates.push({ pc: best.pc, target: best.target, dir: best.dir, speed, score: 999, hitOffset: 0 });
+      candidates.push({ pc: best.pc, target: best.target, dir: best.dir, speed, score: 999 + learnedPenalty('fallback'), hitOffset: 0, learningKey: 'fallback' });
     }
 
     candidates.sort((a, b) => a.score - b.score);
@@ -1388,6 +1391,7 @@ export class PenGameEngine {
       power: (speed - V_MIN) / (V_MAX - V_MIN),
       t: 0,
       dur: this.cfg.level === 'hard' ? 1.15 : 0.95,
+      learningKey: choice.learningKey,
     };
   }
 
@@ -1408,6 +1412,11 @@ export class PenGameEngine {
     this.showAim(a.pc, a.s, a.dir, a.power * k, speedOf(a.power * k), a.dir.clone().multiplyScalar(-pull));
     if (a.t >= a.dur) {
       this.ai = null;
+      this.pendingAiOutcome = {
+        key: a.learningKey || 'fallback',
+        ownBefore: this.pieces.filter((p) => p.alive && p.player === this.turn).length,
+        foesBefore: this.pieces.filter((p) => p.alive && p.player !== this.turn).length,
+      };
       this.strike(a.pc, a.s, a.dir, a.speed, a.power);
     }
   }
@@ -1453,6 +1462,15 @@ export class PenGameEngine {
   }
 
   private endTurn() {
+    if (this.pendingAiOutcome) {
+      const ownAfter = this.pieces.filter((p) => p.alive && p.player === this.turn).length;
+      const foesAfter = this.pieces.filter((p) => p.alive && p.player !== this.turn).length;
+      const ownLost = Math.max(0, this.pendingAiOutcome.ownBefore - ownAfter);
+      const foesLost = Math.max(0, this.pendingAiOutcome.foesBefore - foesAfter);
+      const reward = Math.max(-1, Math.min(1, foesLost * 0.7 - ownLost * 0.9 + (ownLost === 0 && foesLost === 0 ? -0.12 : 0)));
+      recordAiOutcome(this.pendingAiOutcome.key, reward);
+      this.pendingAiOutcome = null;
+    }
     for (const pc of this.pieces) {
       if (!pc.alive) continue;
       pc.body.velocity.set(0, 0, 0);
@@ -1493,6 +1511,7 @@ export class PenGameEngine {
       this.settings = { ...newSettings };
     }
     this.cfg = { ...this.settings };
+    this.pendingAiOutcome = null;
     this.clearPieces();
     this.spawnPieces();
     this.active = true;
