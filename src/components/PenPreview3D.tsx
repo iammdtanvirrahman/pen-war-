@@ -177,16 +177,16 @@ export const PenPreview3D: React.FC<PenPreview3DProps> = ({ model, color }) => {
       roughness: 0.3,
       metalness: model === 'tactical' ? 0.45 : 0.18,
     });
-    const cap = new THREE.Mesh(new THREE.CylinderGeometry(0.037, 0.037, 0.25, 24), capMat);
+    const cap = new THREE.Mesh(new THREE.CylinderGeometry(0.041, 0.041, 0.34, 24), capMat);
     cap.rotation.z = Math.PI / 2;
-    cap.position.x = 0.345;
+    cap.position.x = 0.38;
     penGroup.add(cap);
-    const capEnd = new THREE.Mesh(new THREE.SphereGeometry(0.037, 16, 10), capMat);
-    capEnd.position.x = 0.47;
+    const capEnd = new THREE.Mesh(new THREE.SphereGeometry(0.041, 16, 10), capMat);
+    capEnd.position.x = 0.55;
     penGroup.add(capEnd);
-    const capLip = new THREE.Mesh(new THREE.TorusGeometry(0.037, 0.0035, 8, 24), metalMat);
+    const capLip = new THREE.Mesh(new THREE.TorusGeometry(0.041, 0.0035, 8, 24), metalMat);
     capLip.rotation.y = Math.PI / 2;
-    capLip.position.x = 0.22;
+    capLip.position.x = 0.21;
     penGroup.add(capLip);
 
     // Match the game camera's readable three-quarter angle and keep every pen fully in frame.
