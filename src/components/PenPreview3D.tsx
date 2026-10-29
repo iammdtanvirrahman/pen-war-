@@ -170,6 +170,25 @@ export const PenPreview3D: React.FC<PenPreview3DProps> = ({ model, color }) => {
       penGroup.add(clip);
     }
 
+    // Fit a visible protective cap over the writing nib at the +X/front end.
+    // The cap is intentionally opaque so the nib is fully hidden in the armory preview.
+    const capMat = new THREE.MeshStandardMaterial({
+      color: model === 'tactical' ? '#292524' : bodyColor,
+      roughness: 0.3,
+      metalness: model === 'tactical' ? 0.45 : 0.18,
+    });
+    const cap = new THREE.Mesh(new THREE.CylinderGeometry(0.037, 0.037, 0.25, 24), capMat);
+    cap.rotation.z = Math.PI / 2;
+    cap.position.x = 0.345;
+    penGroup.add(cap);
+    const capEnd = new THREE.Mesh(new THREE.SphereGeometry(0.037, 16, 10), capMat);
+    capEnd.position.x = 0.47;
+    penGroup.add(capEnd);
+    const capLip = new THREE.Mesh(new THREE.TorusGeometry(0.037, 0.0035, 8, 24), metalMat);
+    capLip.rotation.y = Math.PI / 2;
+    capLip.position.x = 0.22;
+    penGroup.add(capLip);
+
     // Match the game camera's readable three-quarter angle and keep every pen fully in frame.
     penGroup.rotation.set(0.16, 0.05, -0.03);
     const resize = () => {
@@ -200,7 +219,7 @@ export const PenPreview3D: React.FC<PenPreview3DProps> = ({ model, color }) => {
         const mesh = o as THREE.Mesh;
         mesh.geometry?.dispose();
       });
-      [bodyMat, metalMat, darkMat, rubberMat, brassMat].forEach((m) => m.dispose());
+      [bodyMat, metalMat, darkMat, rubberMat, brassMat, capMat].forEach((m) => m.dispose());
     };
   }, [model, color]);
 
