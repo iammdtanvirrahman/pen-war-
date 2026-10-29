@@ -4,6 +4,7 @@ on:
   workflow_dispatch:
   push:
     branches:
+      - ai-upgrade
       - android-app
       - '2.0'
     paths:
