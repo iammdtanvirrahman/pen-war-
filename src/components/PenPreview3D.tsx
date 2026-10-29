@@ -184,39 +184,14 @@ export const PenPreview3D: React.FC<PenPreview3DProps> = ({ model, color }) => {
     });
     resizeObserver.observe(host);
 
-    // Avoid spending GPU time on all four previews while they are off-screen.
-    let isVisible = true;
-    const visibilityObserver = new IntersectionObserver(([entry]) => {
-      isVisible = entry.isIntersecting;
-      if (isVisible && !frame) animate();
-      if (!isVisible && frame) {
-        cancelAnimationFrame(frame);
-        frame = 0;
-        renderer.render(scene, camera);
-      }
-    }, { rootMargin: '80px' });
-
-    visibilityObserver.observe(host);
-    const animate = () => {
-      if (disposed || !isVisible || frame) return;
-      const tick = () => {
-        frame = 0;
-        if (disposed || !isVisible) return;
-        penGroup.rotation.y = 0.05 + Math.sin(performance.now() * 0.00045) * 0.035;
-        renderer.render(scene, camera);
-        frame = requestAnimationFrame(tick);
-      };
-      renderer.render(scene, camera);
-      frame = requestAnimationFrame(tick);
-    };
+    // Static asset-style preview: render once, then only redraw when its size changes.
+    // No idle animation or continuous animation-frame loop, keeping the armory lightweight.
     renderer.render(scene, camera);
-    animate();
 
     return () => {
       disposed = true;
       cancelAnimationFrame(frame);
       resizeObserver.disconnect();
-      visibilityObserver.disconnect();
       renderer.dispose();
       if (renderer.domElement.parentElement === host) host.removeChild(renderer.domElement);
       penGroup.traverse((o) => {
