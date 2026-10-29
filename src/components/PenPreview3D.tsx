@@ -1,6 +1,5 @@
 import React, { useEffect, useRef } from 'react';
 import * as THREE from 'three';
-import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { PenModelType } from '../types/game';
 
 interface PenPreview3DProps {
@@ -8,7 +7,7 @@ interface PenPreview3DProps {
   color: string;
 }
 
-/** Small live Three.js preview using the same GLB/procedural pen styles as gameplay. */
+/** Static Three.js preview for procedural pens; Faber-Castell uses its packaged still image. */
 export const PenPreview3D: React.FC<PenPreview3DProps> = ({ model, color }) => {
   const hostRef = useRef<HTMLDivElement>(null);
 
@@ -80,47 +79,7 @@ export const PenPreview3D: React.FC<PenPreview3DProps> = ({ model, color }) => {
       return mesh;
     };
 
-    if (model === 'faber_castell') {
-      new GLTFLoader().load('/assets/pens/models/faber-castell_pen.glb', (gltf) => {
-        if (disposed) {
-          gltf.scene.traverse((o) => {
-            const mesh = o as THREE.Mesh;
-            if (mesh.geometry) mesh.geometry.dispose();
-          });
-          return;
-        }
-        const asset = gltf.scene;
-        const box = new THREE.Box3().setFromObject(asset);
-        const size = box.getSize(new THREE.Vector3());
-        const center = box.getCenter(new THREE.Vector3());
-        asset.position.sub(center);
-        const maxLength = Math.max(size.x, size.y, size.z);
-        if (maxLength > 0) asset.scale.setScalar(0.76 / maxLength);
-        asset.rotation.set(0, 0, 0);
-        asset.traverse((o) => {
-          const mesh = o as THREE.Mesh;
-          if (mesh.isMesh) {
-            mesh.castShadow = false;
-            mesh.receiveShadow = false;
-            const materials = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
-            materials.forEach((m) => {
-              const mat = m as THREE.MeshStandardMaterial;
-              if ('roughness' in mat) mat.roughness = Math.max(0.32, mat.roughness ?? 0.5);
-              if ('metalness' in mat) mat.metalness = Math.min(0.65, mat.metalness ?? 0.1);
-            });
-          }
-        });
-        // The in-game asset is aligned along its local X axis.
-        penGroup.add(asset);
-        renderer.render(scene, camera);
-      }, undefined, () => {
-        addCylinder(0.027, 0.027, 0.52, bodyMat, 0);
-        addCylinder(0.028, 0.028, 0.14, rubberMat, 0.16);
-        addCylinder(0.027, 0.007, 0.08, metalMat, 0.29);
-        addCylinder(0.026, 0.028, 0.06, metalMat, -0.29);
-        renderer.render(scene, camera);
-      });
-    } else if (model === 'fineliner') {
+    if (model === 'fineliner') {
       addCylinder(0.027, 0.027, 0.52, bodyMat, 0);
       addCylinder(0.028, 0.028, 0.14, darkMat, 0.18);
       // Visible tapered writing nose, with a small dark collar and bright metal nib.
