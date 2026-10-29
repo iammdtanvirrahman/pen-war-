@@ -295,7 +295,7 @@ export const PlayerRosterPage: React.FC<PlayerRosterPageProps> = ({
                     </div>
 
                     {/* LOADED PEN ASSET PREVIEW IMAGE */}
-                    <div className="w-full h-16 sm:h-20 my-1 bg-[#080808] border border-white/10 flex items-center justify-center p-1 overflow-hidden relative group-hover:border-[#ff0044]/50 transition-colors">
+                    <div className="w-full h-24 sm:h-28 my-1 bg-[#080808] border border-white/10 flex items-center justify-center p-1 overflow-hidden relative group-hover:border-[#ff0044]/50 transition-colors">
                       <PenPreview3D model={m.id} color={currentPlayer?.color || '#ff4d5e'} />
                     </div>
 
