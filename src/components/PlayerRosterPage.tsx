@@ -100,7 +100,7 @@ export const PlayerRosterPage: React.FC<PlayerRosterPageProps> = ({
 
       {/* Main Content Area */}
       <main
-        className="flex-1 min-h-0 flex flex-col px-3 sm:px-8 py-2 max-w-5xl mx-auto w-full z-10 overflow-y-auto"
+        className="flex-1 min-h-0 flex flex-col px-3 sm:px-8 py-2 max-w-5xl mx-auto w-full z-10 overflow-hidden"
         style={{
           paddingLeft: 'max(12px, env(safe-area-inset-left))',
           paddingRight: 'max(12px, env(safe-area-inset-right))',
@@ -144,9 +144,9 @@ export const PlayerRosterPage: React.FC<PlayerRosterPageProps> = ({
         </div>
 
         {/* Selected Player Details Container */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-3 sm:gap-4 flex-1 min-h-0">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-2 sm:gap-3 flex-1 min-h-0">
           {/* Left Column: Player Identity & Operator Type (Human vs AI) */}
-          <div className="lg:col-span-5 flex flex-col gap-3 bg-white/[0.02] border border-white/10 p-3 sm:p-4 shrink-0">
+          <div className="lg:col-span-5 flex flex-col gap-2 bg-white/[0.02] border border-white/10 p-2.5 sm:p-3 min-h-0">
             {/* Player Name and Color Header */}
             <div>
               <div className="text-[10px] uppercase font-bold tracking-widest text-[#ff0044] mb-1">
@@ -260,14 +260,14 @@ export const PlayerRosterPage: React.FC<PlayerRosterPageProps> = ({
           </div>
 
           {/* Right Column: Pen Model Armory with LOADED ASSET IMAGES */}
-          <div className="lg:col-span-7 flex flex-col bg-white/[0.02] border border-white/10 p-3 sm:p-4 overflow-y-auto">
-            <div className="text-[10px] uppercase font-bold tracking-widest text-[#ff0044] mb-2 flex items-center justify-between">
+          <div className="lg:col-span-7 flex flex-col bg-white/[0.02] border border-white/10 p-2.5 sm:p-3 min-h-0 overflow-hidden">
+            <div className="text-[10px] uppercase font-bold tracking-widest text-[#ff0044] mb-1.5 flex items-center justify-between">
               <span>PEN ARMORY (SELECT WITH ASSET PREVIEW)</span>
               <span className="text-white/40 font-normal">4 MODELS LOADED</span>
             </div>
 
             {/* 4 Pen Model Visual Cards with LOADED IMAGE ASSETS */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+            <div className="grid grid-cols-2 gap-2">
               {PEN_MODELS.map((m) => {
                 const isSelected = currentPlayer?.model === m.id;
                 return (
@@ -275,7 +275,7 @@ export const PlayerRosterPage: React.FC<PlayerRosterPageProps> = ({
                     key={m.id}
                     type="button"
                     onClick={() => handleSelectPenModel(m.id)}
-                    className={`group relative p-2.5 border text-left flex flex-col justify-between transition-all duration-150 cursor-pointer ${
+                    className={`group relative p-2 border text-left flex flex-col justify-between transition-all duration-150 cursor-pointer min-w-0 ${
                       isSelected
                         ? 'bg-[#ff0044]/15 border-[#ff0044] shadow-[0_0_20px_rgba(255,0,68,0.3)]'
                         : 'bg-white/[0.02] hover:bg-white/[0.05] border-white/15 hover:border-white/40'
@@ -283,7 +283,7 @@ export const PlayerRosterPage: React.FC<PlayerRosterPageProps> = ({
                   >
                     {/* Top Label & Source */}
                     <div className="flex items-center justify-between mb-1">
-                      <span className="text-[11px] font-bold uppercase text-white group-hover:text-[#ff0044] transition-colors">
+                      <span className="text-[9px] sm:text-[10px] font-bold uppercase text-white group-hover:text-[#ff0044] transition-colors">
                         {m.name}
                       </span>
                       <span className={`text-[8px] px-1 py-0.5 font-bold uppercase ${
@@ -294,7 +294,7 @@ export const PlayerRosterPage: React.FC<PlayerRosterPageProps> = ({
                     </div>
 
                     {/* LOADED PEN ASSET PREVIEW IMAGE */}
-                    <div className="w-full h-20 sm:h-22 my-1.5 bg-[#080808] border border-white/10 flex items-center justify-center p-1 overflow-hidden relative group-hover:border-[#ff0044]/50 transition-colors">
+                    <div className="w-full h-12 sm:h-14 my-1 bg-[#080808] border border-white/10 flex items-center justify-center p-1 overflow-hidden relative group-hover:border-[#ff0044]/50 transition-colors">
                       <img
                         src={m.previewImage}
                         alt={m.name}
@@ -304,17 +304,17 @@ export const PlayerRosterPage: React.FC<PlayerRosterPageProps> = ({
                     </div>
 
                     {/* Stat Bars: Speed, Weight, Spin */}
-                    <div className="grid grid-cols-3 gap-1 pt-1.5 border-t border-white/10 text-[9px] uppercase text-white/60">
+                    <div className="grid grid-cols-3 gap-1 pt-1 border-t border-white/10 text-[8px] uppercase text-white/60">
                       <div>
-                        <div className="text-[8px] text-white/40">Speed</div>
+                        <div className="text-[7px] text-white/40">Speed</div>
                         <div className="font-bold text-white">{(m.speedFactor * 10).toFixed(1)}</div>
                       </div>
                       <div>
-                        <div className="text-[8px] text-white/40">Weight</div>
+                        <div className="text-[7px] text-white/40">Weight</div>
                         <div className="font-bold text-white">{(m.weight * 1000).toFixed(0)}g</div>
                       </div>
                       <div>
-                        <div className="text-[8px] text-white/40">Spin</div>
+                        <div className="text-[7px] text-white/40">Spin</div>
                         <div className="font-bold text-white">{(m.spinFactor * 10).toFixed(1)}</div>
                       </div>
                     </div>
