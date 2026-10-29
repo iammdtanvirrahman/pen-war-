@@ -349,6 +349,20 @@ Copy the following instructions into a new AI coding session along with this rep
 
 ---
 
-## 13. Change log
+## 13. AI Upgrade branch — adaptive on-device learning
+
+Branch `ai-upgrade` adds a small outcome-based learning layer to the existing local AI. It does not use a cloud model, API key, account, or network connection.
+
+- Candidate shot families are scored using prior outcomes, in addition to the existing geometry, edge pressure, collision alignment, and self-risk heuristic.
+- After an AI shot settles, the engine records a reward: opponent pens knocked off improve that shot family; the AI losing its own pens or achieving no useful result reduces its reward.
+- A compact exponential-moving-average profile is saved under the WebView `localStorage` key `pen-war.ai-learning.v1`, which persists across Android app restarts on the same installation. Clearing app data or uninstalling the app may erase it.
+- Memory is bounded to 120 shot families. If storage is unavailable, the game continues and simply skips persistence.
+- This is lightweight reinforcement-style adaptation, not a neural network; it learns broad shot patterns from outcomes rather than replaying full match states.
+
+### Validation status
+
+The changes were committed to `ai-upgrade`. A full TypeScript/Vite build and Android device test have **not** been run from this editing session, so run `npm install`, `npm run build`, then `npx cap sync android` before packaging.
+
+## 14. Change log
 
 - **2026-10-29:** Expanded this README into a project master reference and AI handoff guide. Documented verified stack, architecture, assets, protected physics values, Medieval Castle design target, mobile constraints, licensing checks, and verification limits. No gameplay source files were intentionally changed as part of this documentation update.
