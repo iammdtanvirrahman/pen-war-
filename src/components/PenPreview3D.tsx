@@ -18,6 +18,26 @@ export const PenPreview3D: React.FC<PenPreview3DProps> = ({ model, color }) => {
 
     let disposed = false;
     let frame = 0;
+
+    // Faber-Castell GLB currently renders black in some Android/WebGL builds.
+    // Use the repository's packaged still preview for a reliable, crisp fallback.
+    if (model === 'faber_castell') {
+      const image = document.createElement('img');
+      image.src = '/assets/pens/previews/faber_castell.svg';
+      image.alt = 'Faber-Castell Grip 2011 pen';
+      image.style.width = '100%';
+      image.style.height = '100%';
+      image.style.objectFit = 'contain';
+      image.style.display = 'block';
+      image.style.padding = '10px 5%';
+      image.decoding = 'async';
+      host.appendChild(image);
+      return () => {
+        disposed = true;
+        image.remove();
+      };
+    }
+
     const scene = new THREE.Scene();
     scene.background = new THREE.Color('#080808');
 
