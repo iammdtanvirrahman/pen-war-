@@ -106,12 +106,12 @@ export const DEFAULT_PLAYER_2 = {
 export const PEN_MASS = 0.04;
 export const TARGET_PEN_LENGTH = 0.72;
 
-export const V_MIN = 0.9;
-export const V_MAX = 6.5; // launch speed range (units/s)
+export const V_MIN = 0.75;
+export const V_MAX = 5.8; // controlled launch speed range (world units/s)
 export const MIN_PULL = 0.10;
 export const MAX_PULL = 1.3; // slingshot pull range on the table (world units)
-export const TABLE_DECEL = 3.8; // sliding friction deceleration on the bench
-export const ROLL_DAMP = 8; // pens resist rolling about their own axis
+export const TABLE_DECEL = 2.15; // tabletop kinetic friction: longer, controllable pen slides
+export const ROLL_DAMP = 4.6; // moderate axial rolling resistance; preserve believable spin
 export const FIXED_STEP = 1 / 120; // 120Hz fixed step for ultra-smooth physical motion
 
 export const AI_LEVELS: Record<AiLevel, { pool: number; angle: number; power: number; offset: number }> = {
