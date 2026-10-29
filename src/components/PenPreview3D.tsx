@@ -23,8 +23,8 @@ export const PenPreview3D: React.FC<PenPreview3DProps> = ({ model, color }) => {
 
     const width = Math.max(1, host.clientWidth);
     const height = Math.max(1, host.clientHeight);
-    const camera = new THREE.PerspectiveCamera(32, width / height, 0.01, 20);
-    camera.position.set(0.05, 1.55, 2.05);
+    const camera = new THREE.PerspectiveCamera(30, width / height, 0.01, 20);
+    camera.position.set(0.05, 0.62, 0.98);
     camera.lookAt(0, 0, 0);
 
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false, powerPreference: 'low-power' });
@@ -92,11 +92,13 @@ export const PenPreview3D: React.FC<PenPreview3DProps> = ({ model, color }) => {
         });
         // The in-game asset is aligned along its local X axis.
         penGroup.add(asset);
+        renderer.render(scene, camera);
       }, undefined, () => {
         addCylinder(0.027, 0.027, 0.52, bodyMat, 0);
         addCylinder(0.028, 0.028, 0.14, rubberMat, 0.16);
         addCylinder(0.027, 0.007, 0.08, metalMat, 0.29);
         addCylinder(0.026, 0.028, 0.06, metalMat, -0.29);
+        renderer.render(scene, camera);
       });
     } else if (model === 'fineliner') {
       addCylinder(0.027, 0.027, 0.52, bodyMat, 0);
