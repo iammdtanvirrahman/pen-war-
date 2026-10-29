@@ -97,6 +97,7 @@ export interface AiShotPlan {
   power: number;
   t: number;
   dur: number;
+  learningKey?: string;
 }
 
 export interface CameraView {
