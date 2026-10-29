@@ -115,6 +115,10 @@ export const PenPreview3D: React.FC<PenPreview3DProps> = ({ model, color }) => {
       nib.position.x = 0.405;
       penGroup.add(nib);
       addCylinder(0.028, 0.026, 0.06, metalMat, -0.29);
+      const clip = new THREE.Mesh(new THREE.BoxGeometry(0.19, 0.008, 0.012), metalMat);
+      clip.position.set(-0.22, 0.031, 0);
+      clip.rotation.z = -0.06;
+      penGroup.add(clip);
     } else if (model === 'tactical') {
       addCylinder(0.033, 0.033, 0.52, darkMat, 0, 6);
       [-0.12, 0, 0.12].forEach((x) => {
@@ -137,6 +141,10 @@ export const PenPreview3D: React.FC<PenPreview3DProps> = ({ model, color }) => {
       nib.position.x = 0.437;
       penGroup.add(nib);
       addCylinder(0.034, 0.034, 0.08, brassMat, -0.3, 6);
+      const clip = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.009, 0.012), brassMat);
+      clip.position.set(-0.22, 0.038, 0);
+      clip.rotation.z = -0.06;
+      penGroup.add(clip);
     } else {
       addCylinder(0.029, 0.031, 0.54, bodyMat, 0);
       addCylinder(0.032, 0.032, 0.16, rubberMat, 0.16);
@@ -154,6 +162,10 @@ export const PenPreview3D: React.FC<PenPreview3DProps> = ({ model, color }) => {
       nib.position.x = 0.422;
       penGroup.add(nib);
       addCylinder(0.033, 0.033, 0.14, metalMat, -0.3);
+      const clip = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.009, 0.012), metalMat);
+      clip.position.set(-0.22, 0.037, 0);
+      clip.rotation.z = -0.06;
+      penGroup.add(clip);
     }
 
     // Match the game camera's readable three-quarter angle and keep every pen fully in frame.
