@@ -101,7 +101,7 @@ export const PlayerRosterPage: React.FC<PlayerRosterPageProps> = ({
 
       {/* Main Content Area */}
       <main
-        className="flex-1 min-h-0 flex flex-col px-3 sm:px-8 py-2 max-w-5xl mx-auto w-full z-10 overflow-hidden"
+        className="flex-1 min-h-0 flex flex-col px-3 sm:px-8 py-2 max-w-5xl mx-auto w-full z-10 overflow-y-auto overscroll-y-contain touch-pan-y"
         style={{
           paddingLeft: 'max(12px, env(safe-area-inset-left))',
           paddingRight: 'max(12px, env(safe-area-inset-right))',
@@ -145,7 +145,7 @@ export const PlayerRosterPage: React.FC<PlayerRosterPageProps> = ({
         </div>
 
         {/* Selected Player Details Container */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-2 sm:gap-3 flex-1 min-h-0">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-2 sm:gap-3 flex-none lg:flex-1 lg:min-h-0">
           {/* Left Column: Player Identity & Operator Type (Human vs AI) */}
           <div className="lg:col-span-5 flex flex-col gap-2 bg-white/[0.02] border border-white/10 p-2.5 sm:p-3 min-h-0">
             {/* Player Name and Color Header */}
@@ -261,7 +261,7 @@ export const PlayerRosterPage: React.FC<PlayerRosterPageProps> = ({
           </div>
 
           {/* Right Column: Pen Model Armory with LOADED ASSET IMAGES */}
-          <div className="lg:col-span-7 flex flex-col bg-white/[0.02] border border-white/10 p-2.5 sm:p-3 min-h-0 overflow-hidden">
+          <div className="lg:col-span-7 flex flex-col bg-white/[0.02] border border-white/10 p-2.5 sm:p-3 min-h-0 overflow-visible lg:overflow-y-auto">
             <div className="text-[10px] uppercase font-bold tracking-widest text-[#ff0044] mb-1.5 flex items-center justify-between">
               <span>PEN ARMORY (SELECT WITH ASSET PREVIEW)</span>
               <span className="text-white/40 font-normal">4 MODELS LOADED</span>
