@@ -101,10 +101,19 @@ export const PenPreview3D: React.FC<PenPreview3DProps> = ({ model, color }) => {
     } else if (model === 'fineliner') {
       addCylinder(0.027, 0.027, 0.52, bodyMat, 0);
       addCylinder(0.028, 0.028, 0.14, darkMat, 0.18);
-      const tip = new THREE.Mesh(new THREE.CylinderGeometry(0.007, 0.027, 0.08, 20), metalMat);
+      // Visible tapered writing nose, with a small dark collar and bright metal nib.
+      const tipCollar = new THREE.Mesh(new THREE.CylinderGeometry(0.018, 0.027, 0.055, 20), darkMat);
+      tipCollar.rotation.z = -Math.PI / 2;
+      tipCollar.position.x = 0.285;
+      penGroup.add(tipCollar);
+      const tip = new THREE.Mesh(new THREE.ConeGeometry(0.018, 0.085, 20), metalMat);
       tip.rotation.z = -Math.PI / 2;
-      tip.position.x = 0.29;
+      tip.position.x = 0.35;
       penGroup.add(tip);
+      const nib = new THREE.Mesh(new THREE.ConeGeometry(0.006, 0.035, 12), new THREE.MeshStandardMaterial({ color: '#f8fafc', roughness: 0.16, metalness: 0.95 }));
+      nib.rotation.z = -Math.PI / 2;
+      nib.position.x = 0.405;
+      penGroup.add(nib);
       addCylinder(0.028, 0.026, 0.06, metalMat, -0.29);
     } else if (model === 'tactical') {
       addCylinder(0.033, 0.033, 0.52, darkMat, 0, 6);
@@ -114,18 +123,36 @@ export const PenPreview3D: React.FC<PenPreview3DProps> = ({ model, color }) => {
         ring.position.x = x;
         penGroup.add(ring);
       });
-      const tip = new THREE.Mesh(new THREE.ConeGeometry(0.033, 0.11, 8), darkMat);
+      // Distinct tapered metal point so the tactical pen's front is clearly visible.
+      const tipBase = new THREE.Mesh(new THREE.CylinderGeometry(0.028, 0.033, 0.045, 8), brassMat);
+      tipBase.rotation.z = Math.PI / 2;
+      tipBase.position.x = 0.282;
+      penGroup.add(tipBase);
+      const tip = new THREE.Mesh(new THREE.ConeGeometry(0.028, 0.12, 8), metalMat);
       tip.rotation.z = -Math.PI / 2;
-      tip.position.x = 0.31;
+      tip.position.x = 0.36;
       penGroup.add(tip);
+      const nib = new THREE.Mesh(new THREE.ConeGeometry(0.006, 0.035, 8), brassMat);
+      nib.rotation.z = -Math.PI / 2;
+      nib.position.x = 0.437;
+      penGroup.add(nib);
       addCylinder(0.034, 0.034, 0.08, brassMat, -0.3, 6);
     } else {
       addCylinder(0.029, 0.031, 0.54, bodyMat, 0);
       addCylinder(0.032, 0.032, 0.16, rubberMat, 0.16);
-      const tip = new THREE.Mesh(new THREE.ConeGeometry(0.03, 0.09, 20), metalMat);
+      // Chrome nose and a narrow writing point, clearly separated from the barrel.
+      const nose = new THREE.Mesh(new THREE.CylinderGeometry(0.018, 0.03, 0.055, 20), chromeMat);
+      nose.rotation.z = -Math.PI / 2;
+      nose.position.x = 0.29;
+      penGroup.add(nose);
+      const tip = new THREE.Mesh(new THREE.ConeGeometry(0.018, 0.09, 20), chromeMat);
       tip.rotation.z = -Math.PI / 2;
-      tip.position.x = 0.31;
+      tip.position.x = 0.36;
       penGroup.add(tip);
+      const nib = new THREE.Mesh(new THREE.ConeGeometry(0.005, 0.035, 12), metalMat);
+      nib.rotation.z = -Math.PI / 2;
+      nib.position.x = 0.422;
+      penGroup.add(nib);
       addCylinder(0.033, 0.033, 0.14, metalMat, -0.3);
     }
 
